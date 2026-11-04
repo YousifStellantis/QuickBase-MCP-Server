@@ -1,0 +1,44 @@
+{
+  "name": "quickbase-mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "QuickBase MCP Server: give any local AI agent safe, schema-aware access to Quickbase apps, tables, field IDs, code pages, forms (QBL), pipelines (YAML) and records, plus built-in skills for modern automotive work.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "engines": {
+    "node": ">=20.18.1"
+  },
+  "bin": {
+    "quickbase-mcp": "./build/index.js"
+  },
+  "files": [
+    "build",
+    "skills",
+    "docs",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/postbuild.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node build/index.js",
+    "test": "npm run build && vitest run",
+    "test:unit": "vitest run --exclude test/e2e.test.ts",
+    "inspect:modern": "npx -y @modelcontextprotocol/inspector@2.13.0 --cli node build/index.js --protocol-era modern --method tools/list",
+    "inspect:legacy": "npx -y @modelcontextprotocol/inspector@2.13.0 --cli node build/index.js --protocol-era legacy --method tools/list",
+    "inspect:skills": "npx -y @modelcontextprotocol/inspector@2.13.0 --cli node build/index.js --protocol-era modern --method skills/list --verify",
+    "doctor": "node build/index.js doctor"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.4.0",
+    "diff": "^9.0.0",
+    "undici": "^7.30.1",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "2.4.0",
+    "@types/node": "^22.10.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}

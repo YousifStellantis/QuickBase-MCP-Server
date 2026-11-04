@@ -1,0 +1,30 @@
+QBL Version: '0.12'
+ParameterDefinitions:
+  RealmHost:
+    Type: String
+Resources:
+  $App_Plant_Quality:
+    Type: QB::Application
+    Properties:
+      Name: Plant Quality
+      Manager: someone@example.com
+  $Table_Defects:
+    Type: QB::Table
+    Properties:
+      Name: Defects
+      Fields:
+        - Label: Status
+          Type: text-multiple-choice
+        - Label: Line
+          Type: text
+          Formula: !BadRef 17
+  $Form_Defect_Entry:
+    Type: QB::FormV2
+    Properties:
+      Name: Defect entry
+      Table: !Ref $Table_Defects
+  $CodePage_Line_Board:
+    Type: QB::CodePage
+    Properties:
+      Name: line-board.html
+      RawCode: "<!DOCTYPE html><html><head><title>Line board</title></head><body>]]> ok</body></html>"

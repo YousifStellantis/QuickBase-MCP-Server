@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Line quality board</title>
+<!--
+  Starter code page: line quality board (FTT, DPU, open defects, Pareto).
+  - Replace the GENERATED CONSTANTS block with output from generate_field_constants
+    (style js-object), or use __QB_FIELD:table.field__ placeholders and deploy_code_page.
+  - Paste the full tokens.css into the <style> below, or store it as its own code page
+    "tokens.css" and load it with <link rel="stylesheet" href="?a=dbpage&pagename=tokens.css">.
+  - Opened outside Quickbase (file:// or localhost) the page renders sample data.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{--brand-500:#24609c;--brand-100:#e5eef7;--text-on-brand:#fff;--ink-900:#15181b;--ink-700:#343b42;--ink-600:#4a535c;--ink-500:#5f6973;--ink-400:#7c8690;--ink-300:#a7afb7;--ink-200:#d2d7dc;--ink-100:#e8ebee;--ink-50:#f4f5f7;--paper:#fff;--surface:#fff;--surface-sunken:#f4f5f7;--text:var(--ink-900);--text-muted:var(--ink-500);--ok:#1c7a45;--ok-bg:#e4f2ea;--warn:#a86400;--warn-bg:#fbf0dc;--stop:#c0262d;--stop-bg:#fbe5e6;--info:#24609c;--info-bg:#e5eef7;--idle:#6b747d;--idle-bg:#eef0f2;--series-1:#24609c;--series-2:#5f6973;--series-muted:#a7afb7;--chart-grid:#e8ebee;--font-ui:"Barlow","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;--font-mono:"IBM Plex Mono",Consolas,Menlo,monospace;--sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:24px;--sp-6:32px;--radius-sm:4px;--radius-md:6px;--hairline:1px solid var(--ink-200);--divider:1px solid var(--ink-100);--focus-ring:0 0 0 2px var(--paper),0 0 0 4px var(--brand-500);--dur:160ms;--ease:cubic-bezier(.2,0,0,1)}
+:root[data-theme="dark"]{color-scheme:dark;--text-on-brand:#0b1018;--paper:#0f1216;--surface:#151a20;--surface-sunken:#0b0e11;--ink-900:#e7eaed;--ink-700:#bfc6cc;--ink-600:#a5adb5;--ink-500:#8b949d;--ink-400:#707a84;--ink-300:#4f5861;--ink-200:#343b43;--ink-100:#232a31;--ink-50:#1a2027;--brand-500:#5b9bd9;--brand-100:#16283b;--ok:#3fbf74;--ok-bg:#12291c;--warn:#e0a23a;--warn-bg:#2e2410;--stop:#ff5f5f;--stop-bg:#331516;--info:#5b9bd9;--info-bg:#13263a;--idle-bg:#1d232a;--series-1:#5b9bd9;--series-2:#a5adb5;--series-muted:#4f5861;--chart-grid:#232a31}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--surface-sunken);color:var(--text);font:14px/1.45 var(--font-ui)}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--font-mono);font-size:13px}
+header.bar{height:56px;display:flex;align-items:center;gap:var(--sp-4);padding:0 var(--sp-5);background:var(--surface);border-bottom:var(--hairline)}
+header.bar h1{font-size:16px;font-weight:600;margin:0;letter-spacing:.01em}
+.ctx{display:flex;gap:var(--sp-2);color:var(--text-muted);font-size:13px}
+.ctx span+span::before{content:"·";margin-right:var(--sp-2);color:var(--ink-300)}
+.spacer{flex:1}
+.fresh{color:var(--text-muted);font-size:13px}
+main{max-width:1600px;margin:0 auto;padding:var(--sp-5);display:grid;gap:var(--sp-5)}
+.filters{display:flex;flex-wrap:wrap;gap:var(--sp-3);align-items:end}
+.filters label{display:grid;gap:var(--sp-1);font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em}
+select,input,button{font:inherit;height:36px;border-radius:var(--radius-sm);border:var(--hairline);background:var(--surface);color:var(--text);padding:0 var(--sp-3)}
+button{cursor:pointer;transition:background-color var(--dur) var(--ease),border-color var(--dur) var(--ease)}
+button.primary{background:var(--brand-500);border-color:var(--brand-500);color:var(--text-on-brand);font-weight:600}
+button.text{border-color:transparent;background:transparent;color:var(--brand-500)}
+button:hover{border-color:var(--ink-400)}
+:focus-visible{outline:none;box-shadow:var(--focus-ring)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--sp-4)}
+.kpi{background:var(--surface);border:var(--hairline);border-radius:var(--radius-md);padding:var(--sp-4)}
+.kpi .label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em}
+.kpi .value{font-size:36px;font-weight:600;line-height:1.15;margin-top:var(--sp-2)}
+.kpi .value small{font-size:16px;font-weight:400;color:var(--text-muted);margin-left:2px}
+.kpi .meta{display:flex;justify-content:space-between;margin-top:var(--sp-2);font-size:13px;color:var(--text-muted)}
+.delta.ok{color:var(--ok)}.delta.warn{color:var(--warn)}.delta.stop{color:var(--stop)}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:var(--sp-5);align-items:start}
+@media (max-width:1100px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:var(--hairline);border-radius:var(--radius-md);display:flex;flex-direction:column;min-height:0}
+.panel>.head{padding:var(--sp-4) var(--sp-4) var(--sp-2)}
+.panel h2{font-size:16px;font-weight:600;margin:0}
+.panel .sub{font-size:13px;color:var(--text-muted);margin-top:2px}
+.panel>.body{padding:var(--sp-2) var(--sp-4) var(--sp-4);flex:1;min-height:0}
+.panel>.foot{padding:var(--sp-2) var(--sp-4);border-top:var(--divider);font-size:12px;color:var(--text-muted)}
+.chart{position:relative;height:300px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:var(--sp-2) var(--sp-3);border-bottom:var(--divider);text-align:left;white-space:nowrap}
+th{position:sticky;top:0;background:var(--surface);font-weight:600;color:var(--text-muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;cursor:pointer}
+td.n,th.n{text-align:right}
+tbody tr:hover{background:var(--ink-50)}
+.tablewrap{max-height:420px;overflow:auto}
+.chip{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:11px;font-size:12px;font-weight:600}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.chip.ok{color:var(--ok);background:var(--ok-bg)}.chip.warn{color:var(--warn);background:var(--warn-bg)}.chip.stop{color:var(--stop);background:var(--stop-bg)}.chip.info{color:var(--info);background:var(--info-bg)}
+.banner{display:none;gap:var(--sp-3);align-items:center;padding:var(--sp-3) var(--sp-4);border:1px solid var(--stop);background:var(--stop-bg);color:var(--stop);border-radius:var(--radius-md)}
+.banner.show{display:flex}
+.empty{padding:var(--sp-6) var(--sp-4);color:var(--text-muted);text-align:center}
+.skeleton{height:14px;border-radius:3px;background:var(--ink-100)}
+@media print{header.bar,.filters,button{display:none!important}html,body{background:#fff}.panel,.kpi{break-inside:avoid;border-color:#ccc}.tablewrap{max-height:none;overflow:visible}}
+</style>
+</head>
+<body>
+<header class="bar">
+  <h1>Line quality board</h1>
+  <div class="ctx" id="ctx"><span id="ctxPlant">Assembly plant</span><span id="ctxLine">All lines</span><span id="ctxRange">Last 7 days</span></div>
+  <div class="spacer"></div>
+  <div class="fresh" id="fresh" aria-live="polite">Loading…</div>
+  <button class="text" id="themeToggle" type="button" aria-pressed="false">Cockpit mode</button>
+</header>
+
+<main>
+  <div class="banner" id="error" role="alert"><span id="errorText"></span><span class="spacer"></span><button type="button" id="retry">Retry</button></div>
+
+  <form class="filters" id="filters" onsubmit="return false">
+    <label>Line<select id="fLine"><option value="">All lines</option></select></label>
+    <label>Shift<select id="fShift"><option value="">All shifts</option><option>A</option><option>B</option><option>C</option></select></label>
+    <label>From<input type="date" id="fFrom"></label>
+    <label>To<input type="date" id="fTo"></label>
+    <button class="primary" id="apply" type="button">Apply</button>
+    <button class="text" id="reset" type="button">Reset</button>
+  </form>
+
+  <section class="kpis" id="kpis" aria-label="Key figures"></section>
+
+  <div class="grid">
+    <section class="panel">
+      <div class="head"><h2>Defects by code</h2><div class="sub">Pareto · vital few highlighted</div></div>
+      <div class="body"><div class="chart"><canvas id="pareto" aria-label="Pareto of defects by code" role="img"></canvas></div></div>
+      <div class="foot">Count of defect records in the selected range.</div>
+    </section>
+    <section class="panel">
+      <div class="head"><h2>Open defects</h2><div class="sub" id="openSub">Oldest first</div></div>
+      <div class="body tablewrap">
+        <table>
+          <thead><tr><th data-k="id">ID</th><th data-k="date">Date</th><th data-k="line">Line</th><th data-k="station">Station</th><th data-k="code">Code</th><th data-k="qty" class="n">Qty</th><th data-k="status">Status</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="foot" id="source">Source: Quickbase</div>
+    </section>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+"use strict";
+
+/* ---- GENERATED CONSTANTS (replace with generate_field_constants output) ---- */
+const QB = Object.freeze({
+  realm: "yourrealm.quickbase.com",
+  appId: "bxxxxxxxx",
+  tables: {
+    defects: {
+      id: "bxxxxxxx1",
+      fields: { recordId: 3, defectDate: 6, line: 7, station: 8, defectCode: 9, quantity: 10, status: 11, shift: 12, vin: 13 },
+    },
+  },
+});
+/* --------------------------------------------------------------------------- */
+
+const T = QB.tables.defects;
+const F = T.fields;
+const IN_QUICKBASE = /\.quickbase\.com$/.test(location.hostname);
+const REALM = IN_QUICKBASE ? location.hostname : QB.realm;
+
+/* Quickbase client: temp-token auth (session cookie), per-table token cache, retry, pagination. */
+const qb = (() => {
+  const tokens = new Map();
+  const TOKEN_TTL_MS = 4 * 60 * 1000;
+  async function token(dbid, force) {
+    const hit = tokens.get(dbid);
+    if (!force && hit && Date.now() < hit.exp) return hit.value;
+    const res = await fetch(`https://api.quickbase.com/v1/auth/temporary/${dbid}`, { headers: { "QB-Realm-Hostname": REALM }, credentials: "include", cache: "no-store" });
+    if (!res.ok) throw new Error(`Sign-in check failed (${res.status}). Open this page from inside Quickbase.`);
+    const value = (await res.json()).temporaryAuthorization;
+    tokens.set(dbid, { value, exp: Date.now() + TOKEN_TTL_MS });
+    return value;
+  }
+  async function call(path, body, dbid, attempt = 0) {
+    const res = await fetch(`https://api.quickbase.com/v1${path}`, {
+      method: "POST",
+      headers: { "QB-Realm-Hostname": REALM, Authorization: `QB-TEMP-TOKEN ${await token(dbid, attempt > 0)}`, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if ((res.status === 401 || res.status === 429 || res.status >= 500) && attempt < 2) {
+      await new Promise((r) => setTimeout(r, Number(res.headers.get("retry-after")) * 1000 || 600 * (attempt + 1)));
+      return call(path, body, dbid, attempt + 1);
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.description || data.message || `Quickbase returned ${res.status}`);
+    return data;
+  }
+  async function queryAll(body, max = 5000) {
+    const rows = [];
+    let skip = 0;
+    for (;;) {
+      const page = await call("/records/query", { ...body, options: { ...(body.options || {}), skip, top: Math.min(1000, max - rows.length) } }, body.from);
+      rows.push(...page.data);
+      skip += page.metadata.numRecords;
+      if (!page.metadata.numRecords || skip >= page.metadata.totalRecords || rows.length >= max) return rows;
+    }
+  }
+  return { queryAll };
+})();
+
+/* ---- Data ---- */
+const v = (row, fid) => (row[fid] ? row[fid].value : null);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = { int: new Intl.NumberFormat("en-US"), pct: new Intl.NumberFormat("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) };
+
+function isoDaysAgo(n) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
+function buildWhere(f) {
+  const parts = [`{${F.defectDate}.OAF.'${f.from}'}`, `{${F.defectDate}.OBF.'${f.to}'}`];
+  if (f.line) parts.push(`{${F.line}.EX.'${f.line.replace(/'/g, "\\'")}'}`);
+  if (f.shift) parts.push(`{${F.shift}.EX.'${f.shift}'}`);
+  return parts.join("AND");
+}
+
+async function loadDefects(f) {
+  if (!IN_QUICKBASE) return sampleData();
+  const rows = await qb.queryAll({
+    from: T.id,
+    select: Object.values(F),
+    where: buildWhere(f),
+    sortBy: [{ fieldId: F.defectDate, order: "ASC" }],
+  });
+  return rows.map((r) => ({ id: v(r, F.recordId), date: v(r, F.defectDate), line: v(r, F.line), station: v(r, F.station), code: v(r, F.defectCode), qty: Number(v(r, F.quantity)) || 0, status: v(r, F.status) || "Open", shift: v(r, F.shift), vin: v(r, F.vin) }));
+}
+
+function sampleData() {
+  // Weighted so the sample Pareto looks like a real line: a vital few and a long tail.
+  const codes = [["Torque NOK", 17], ["Seal gap", 12], ["Paint run", 9], ["Wiring connector", 7], ["Missing clip", 5], ["Scratch", 3], ["Glass bead", 2]];
+  const bag = codes.flatMap(([c, w]) => Array(w).fill(c));
+  const out = [];
+  for (let i = 0; i < 64; i++) {
+    out.push({ id: 1200 + i, date: isoDaysAgo(i % 7), line: `Line ${1 + (i % 3)}`, station: `S${String(10 + (i % 9) * 10).padStart(3, "0")}`, code: bag[(i * 17) % bag.length], qty: 1 + (i % 3), status: i % 5 === 0 ? "Contained" : i % 4 === 0 ? "Closed" : "Open", shift: "ABC"[i % 3], vin: `1C4RJKBG${String(510000 + (i % 41)).padStart(9, "0")}` });
+  }
+  return out;
+}
+
+/* ---- Render ---- */
+let paretoChart;
+
+function renderKpis(defects, unitsBuilt) {
+  const dpu = unitsBuilt ? defects.reduce((n, d) => n + d.qty, 0) / unitsBuilt : 0;
+  const open = defects.filter((d) => d.status !== "Closed").length; // same rule as the table: open or contained
+  // FTT = units with no defect / units built. Count unique defective units (VIN/serial), not defect records.
+  const ftt = unitsBuilt ? Math.max(0, 100 - (new Set(defects.map((d) => d.vin).filter(Boolean)).size / unitsBuilt) * 100) : 0;
+  const tiles = [
+    { label: "First time through", value: fmt.pct.format(ftt), unit: "%", target: "≥ 92.0 %", status: ftt >= 92 ? "ok" : ftt >= 88 ? "warn" : "stop" },
+    { label: "Defects per unit", value: dpu.toFixed(2), unit: "DPU", target: "≤ 0.15", status: dpu <= 0.15 ? "ok" : dpu <= 0.25 ? "warn" : "stop" },
+    { label: "Not closed", value: fmt.int.format(open), unit: "", target: "0 older than 24 h", status: open === 0 ? "ok" : "warn" },
+    { label: "Units built", value: fmt.int.format(unitsBuilt), unit: "", target: "Plan 2,400", status: unitsBuilt >= 2400 ? "ok" : "warn" },
+  ];
+  const word = { ok: "On target", warn: "At risk", stop: "Off target" };
+  document.getElementById("kpis").innerHTML = tiles
+    .map((t) => `<div class="kpi"><div class="label">${esc(t.label)}</div><div class="value num">${esc(t.value)}${t.unit ? `<small>${esc(t.unit)}</small>` : ""}</div><div class="meta"><span>Target ${esc(t.target)}</span><span class="delta ${t.status}">${t.status === "ok" ? "✓" : t.status === "warn" ? "▲" : "■"} ${word[t.status]}</span></div></div>`)
+    .join("");
+}
+
+function renderPareto(defects) {
+  const counts = new Map();
+  for (const d of defects) counts.set(d.code, (counts.get(d.code) || 0) + d.qty);
+  const items = [...counts].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+  const total = items.reduce((n, i) => n + i.value, 0) || 1;
+  let run = 0;
+  const cum = items.map((i) => Math.round(((run += i.value) / total) * 1000) / 10);
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const data = {
+    labels: items.map((i) => i.label),
+    datasets: [
+      { type: "bar", order: 2, data: items.map((i) => i.value), backgroundColor: cum.map((c, i) => (i === 0 || cum[i - 1] < 80 ? css("--series-1") : css("--series-muted"))), yAxisID: "y" },
+      { type: "line", order: 1, data: cum, borderColor: css("--ink-600"), borderWidth: 2, pointRadius: 2, pointBackgroundColor: css("--ink-600"), yAxisID: "y2" },
+    ],
+  };
+  if (paretoChart) paretoChart.destroy();
+  Chart.defaults.font.family = css("--font-ui");
+  Chart.defaults.color = css("--text-muted");
+  paretoChart = new Chart(document.getElementById("pareto"), {
+    data,
+    options: {
+      maintainAspectRatio: false,
+      animation: { duration: 160 },
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: css("--chart-grid") }, title: { display: true, text: "Defects" } }, y2: { position: "right", min: 0, max: 100, grid: { display: false }, ticks: { callback: (x) => `${x} %` } } },
+    },
+  });
+}
+
+let tableRows = [];
+let sortKey = "date";
+let sortDir = 1;
+
+function renderTable() {
+  const open = tableRows.filter((d) => d.status !== "Closed").sort((a, b) => (a[sortKey] > b[sortKey] ? sortDir : -sortDir));
+  const chip = { Open: "stop", Contained: "warn", Closed: "ok" };
+  document.getElementById("openSub").textContent = `${open.length} not closed · sorted by ${sortKey}`;
+  document.getElementById("rows").innerHTML = open.length
+    ? open
+        .map((d) => `<tr><td class="mono">${IN_QUICKBASE ? `<a href="/db/${T.id}?a=dr&rid=${encodeURIComponent(d.id)}">${esc(d.id)}</a>` : esc(d.id)}</td><td class="num">${esc(d.date)}</td><td>${esc(d.line)}</td><td class="mono">${esc(d.station)}</td><td>${esc(d.code)}</td><td class="n num">${esc(d.qty)}</td><td><span class="chip ${chip[d.status] || "info"}">${esc(d.status)}</span></td></tr>`)
+        .join("")
+    : `<tr><td colspan="7" class="empty">No open defects for this selection.</td></tr>`;
+}
+
+function skeleton() {
+  document.getElementById("kpis").innerHTML = Array.from({ length: 4 }, () => `<div class="kpi"><div class="skeleton" style="width:40%"></div><div class="skeleton" style="height:36px;margin-top:12px;width:60%"></div></div>`).join("");
+  document.getElementById("rows").innerHTML = Array.from({ length: 6 }, () => `<tr><td colspan="7"><div class="skeleton"></div></td></tr>`).join("");
+}
+
+/* ---- Wiring ---- */
+function currentFilters() {
+  return { line: document.getElementById("fLine").value, shift: document.getElementById("fShift").value, from: document.getElementById("fFrom").value, to: document.getElementById("fTo").value };
+}
+
+async function refresh() {
+  const f = currentFilters();
+  document.getElementById("error").classList.remove("show");
+  document.getElementById("ctxLine").textContent = f.line || "All lines";
+  document.getElementById("ctxRange").textContent = `${f.from} to ${f.to}`;
+  skeleton();
+  try {
+    const defects = await loadDefects(f);
+    const lines = [...new Set(defects.map((d) => d.line))].sort();
+    const sel = document.getElementById("fLine");
+    if (sel.options.length === 1) for (const l of lines) sel.add(new Option(l, l));
+    tableRows = defects;
+    renderKpis(defects, IN_QUICKBASE ? 2400 : 2310);
+    renderPareto(defects);
+    renderTable();
+    document.getElementById("fresh").textContent = `Updated ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}`;
+    document.getElementById("source").textContent = IN_QUICKBASE ? `Source: Quickbase · table ${T.id}` : "Sample data (open from Quickbase for live data)";
+  } catch (err) {
+    document.getElementById("errorText").textContent = `Could not load defects: ${err.message}`;
+    document.getElementById("error").classList.add("show");
+    document.getElementById("fresh").textContent = "Not updated";
+  }
+}
+
+document.getElementById("fFrom").value = isoDaysAgo(6);
+document.getElementById("fTo").value = isoDaysAgo(0);
+document.getElementById("apply").addEventListener("click", refresh);
+document.getElementById("retry").addEventListener("click", refresh);
+document.getElementById("reset").addEventListener("click", () => {
+  document.getElementById("fLine").value = "";
+  document.getElementById("fShift").value = "";
+  document.getElementById("fFrom").value = isoDaysAgo(6);
+  document.getElementById("fTo").value = isoDaysAgo(0);
+  refresh();
+});
+document.querySelectorAll("th[data-k]").forEach((th) =>
+  th.addEventListener("click", () => {
+    sortDir = sortKey === th.dataset.k ? -sortDir : 1;
+    sortKey = th.dataset.k;
+    renderTable();
+  }),
+);
+const toggle = document.getElementById("themeToggle");
+function setTheme(dark) {
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  toggle.setAttribute("aria-pressed", String(dark));
+  toggle.textContent = dark ? "Office mode" : "Cockpit mode";
+  try { localStorage.setItem("qb-theme", dark ? "dark" : "light"); } catch (_) { /* storage blocked */ }
+  if (tableRows.length) renderPareto(tableRows);
+}
+toggle.addEventListener("click", () => setTheme(document.documentElement.dataset.theme !== "dark"));
+try { if (localStorage.getItem("qb-theme") === "dark") setTheme(true); } catch (_) { /* storage blocked */ }
+
+refresh();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+node_modules/
+build/
+.env
+.env.*
+!.env.example
+quickbase-mcp.config.json
+.qb-deploy-state.json
+.quickbase/
+*.log

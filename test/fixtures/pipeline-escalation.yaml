@@ -1,0 +1,40 @@
+# Escalate overdue containment
+#
+
+# Account slugs:
+#  - quickbase[Qa1B2c3]: Pipelines service account <None>
+---
+- META:
+    name: Escalate overdue containment
+    description: Flags 8D reports whose containment is overdue. Ver_1.0
+    enabled: false
+- TRIGGER quickbase[Qa1B2c3] record on_update -> a:
+    inputs-meta:
+      export_fields: '"Report Number, Owner, Containment Due, Status" <6, 11, 24, 7>'
+      query: '{7.XEX.''Closed''}'
+      table: '"Plant Quality: 8D Reports" <bq8drpt01>'
+      trigger_fields: '"Containment Due" <24>'
+- QUERY quickbase[Qa1B2c3] record search -> b:
+    inputs-meta:
+      export_fields: '8, 9'
+      query: '{8.EX.''{{a.id}}''}AND{9.XEX.''Done''}'
+      table: bq8cnta02
+- IF:
+  - AND:
+    - b<> !empty
+  - THEN:
+    - a<>ACTION quickbase record update -> c:
+        inputs:
+          escalation_level: '{{ (a.escalation_level|int) + 1 }}'
+  - ELSE:
+    - a<>ACTION quickbase record update -> d:
+        inputs:
+          escalation_level: '0'
+          not_a_field: x
+- ACTION quickbase[Qa1B2c3] quickbase_api make -> e:
+    inputs:
+      body: "{\"to\": \"bq8cnta02\", \"data\": [{\"9\": {\"value\": \"Escalated\"}}]}"
+      content_type: application/json
+      method: POST
+      url: https://api.quickbase.com/v1/records
+...

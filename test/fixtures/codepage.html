@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Competency radar</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<div id="out"></div>
+<script>
+const QB_REALM_HOSTNAME = "fca.quickbase.com";
+const DBID_COMP_DETAILS = "bv3ijqck2";
+const DBID_POSITIONS = "bv3iizxwv";
+const FID_FIRST_NAME = 16;
+const FID_LAST_NAME = 17;
+const FID_TID = 99;
+const FID_CURRENT_LEVEL = 18;
+
+async function getTempToken(dbid) {
+  const r = await fetch(`https://api.quickbase.com/v1/auth/temporary/${dbid}`, { headers: { "QB-Realm-Hostname": QB_REALM_HOSTNAME }, credentials: "include" });
+  return (await r.json()).temporaryAuthorization;
+}
+
+async function load() {
+  const body = { from: DBID_COMP_DETAILS, select: [16, 17, 18], where: "{18.GT.2}AND{404.EX.'x'}" };
+  document.getElementById("out").innerHTML = JSON.stringify(body);
+}
+load();
+</script>
+</body>
+</html>

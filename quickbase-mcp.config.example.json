@@ -1,0 +1,44 @@
+{
+  "defaultEnv": "dev",
+
+  "environments": {
+    "dev": {
+      "realm": "yourcompany.quickbase.com",
+      "appId": "YOUR_DEV_APP_ID",
+      "tokenEnvVar": "QB_USER_TOKEN_DEV"
+    },
+    "test": {
+      "realm": "yourcompany.quickbase.com",
+      "appId": "YOUR_TEST_APP_ID",
+      "tokenEnvVar": "QB_USER_TOKEN_TEST"
+    },
+    "prod": {
+      "realm": "yourcompany.quickbase.com",
+      "appId": "YOUR_PROD_APP_ID",
+      "tokenEnvVar": "QB_USER_TOKEN_PROD",
+      "protected": true
+    }
+  },
+
+  "targets": {
+    "kpi": {
+      "src": "KPI.html",
+      "pageName": "KPI.html",
+      "pageIds": { "dev": "", "test": "", "prod": "" }
+    },
+    "radar": {
+      "src": "WAP_RADAR_CHARTS.html",
+      "pageName": "RadarChart.html",
+      "pageIds": { "dev": "", "test": "", "prod": "" }
+    }
+  },
+
+  "tables": {
+    "dev": { "compDetails": "YOUR_DEV_TABLE_ID" },
+    "prod": { "compDetails": "YOUR_PROD_TABLE_ID" }
+  },
+
+  "pipelineWebhooks": {
+    "rebuild-kpis": { "url": "https://example.invalid/replace-with-your-pipeline-webhook-url", "description": "Recalculate KPI snapshot" }
+  }
+}

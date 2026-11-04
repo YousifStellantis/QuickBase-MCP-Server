@@ -1,0 +1,187 @@
+/*
+ * Automotive UI design tokens (light + dark "cockpit" mode).
+ *
+ * The --brand-* values are neutral placeholders. Replace them with the official
+ * corporate palette from your brand portal; do not copy logos or brand assets
+ * from the web. Status colors follow the IEC 60073 meaning of indicator colors
+ * (green normal, amber abnormal, red action required, blue information).
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Brand slot (placeholder deep blue). */
+  --brand-900: #0c1f33;
+  --brand-700: #173a5e;
+  --brand-600: #1d4b7a;
+  --brand-500: #24609c;
+  --brand-100: #e5eef7;
+
+  /* Graphite neutrals. */
+  --ink-900: #15181b;
+  --ink-800: #23282d;
+  --ink-700: #343b42;
+  --ink-600: #4a535c;
+  --ink-500: #5f6973;
+  --ink-400: #7c8690;
+  --ink-300: #a7afb7;
+  --ink-200: #d2d7dc;
+  --ink-100: #e8ebee;
+  --ink-50: #f4f5f7;
+  --paper: #ffffff;
+  --surface: #ffffff;
+  --surface-sunken: #f4f5f7;
+
+  /* Text roles. */
+  --text: var(--ink-900);
+  --text-muted: var(--ink-500);
+  --text-subtle: var(--ink-400);
+  --text-on-brand: #ffffff;
+
+  /* Status. */
+  --ok: #1c7a45;
+  --ok-bg: #e4f2ea;
+  --warn: #a86400;
+  --warn-bg: #fbf0dc;
+  --stop: #c0262d;
+  --stop-bg: #fbe5e6;
+  --info: #24609c;
+  --info-bg: #e5eef7;
+  --idle: #6b747d;
+  --idle-bg: #eef0f2;
+
+  /* Chart series (ordered; first is the accent, the rest are calm and distinguishable). */
+  --series-1: #24609c;
+  --series-2: #5f6973;
+  --series-3: #2d8a8a;
+  --series-4: #8a6d3b;
+  --series-5: #6f5a9a;
+  --series-muted: #a7afb7;
+  --chart-grid: #e8ebee;
+
+  /* Typography. */
+  --font-ui: "Barlow", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", "Cascadia Mono", Consolas, "SFMono-Regular", Menlo, monospace;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 20px;
+  --fs-2xl: 28px;
+  --fs-kpi: 36px;
+  --lh-tight: 1.15;
+  --lh-body: 1.45;
+  --fw-regular: 400;
+  --fw-strong: 600;
+
+  /* Space (4 px grid). */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+
+  /* Shape and depth. */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --hairline: 1px solid var(--ink-200);
+  --divider: 1px solid var(--ink-100);
+  --shadow-1: 0 1px 2px rgba(21, 24, 27, 0.06);
+  --focus-ring: 0 0 0 2px var(--paper), 0 0 0 4px var(--brand-500);
+
+  /* Motion. */
+  --dur: 160ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Sizes. */
+  --header-h: 56px;
+  --control-h: 36px;
+  --touch-target: 44px;
+}
+
+/* Dark "cockpit" mode: explicit opt-in, or follow the OS unless light is forced. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #0f1216;
+  --surface: #151a20;
+  --surface-sunken: #0b0e11;
+  --ink-900: #e7eaed;
+  --ink-800: #d5dade;
+  --ink-700: #bfc6cc;
+  --ink-600: #a5adb5;
+  --ink-500: #8b949d;
+  --ink-400: #707a84;
+  --ink-300: #4f5861;
+  --ink-200: #343b43;
+  --ink-100: #232a31;
+  --ink-50: #1a2027;
+  --brand-500: #5b9bd9;
+  --brand-100: #16283b;
+  --text-on-brand: #0b1018;
+  --ok: #3fbf74;
+  --ok-bg: #12291c;
+  --warn: #e0a23a;
+  --warn-bg: #2e2410;
+  --stop: #ff5f5f;
+  --stop-bg: #331516;
+  --info: #5b9bd9;
+  --info-bg: #13263a;
+  --idle: #8b949d;
+  --idle-bg: #1d232a;
+  --series-1: #5b9bd9;
+  --series-2: #a5adb5;
+  --series-3: #4fb3b3;
+  --series-4: #c8a46a;
+  --series-5: #a08cd0;
+  --series-muted: #4f5861;
+  --chart-grid: #232a31;
+  --shadow-1: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #0f1216;
+    --surface: #151a20;
+    --surface-sunken: #0b0e11;
+    --ink-900: #e7eaed;
+    --ink-800: #d5dade;
+    --ink-700: #bfc6cc;
+    --ink-600: #a5adb5;
+    --ink-500: #8b949d;
+    --ink-400: #707a84;
+    --ink-300: #4f5861;
+    --ink-200: #343b43;
+    --ink-100: #232a31;
+    --ink-50: #1a2027;
+    --brand-500: #5b9bd9;
+    --brand-100: #16283b;
+    --text-on-brand: #0b1018;
+    --ok: #3fbf74;
+    --ok-bg: #12291c;
+    --warn: #e0a23a;
+    --warn-bg: #2e2410;
+    --stop: #ff5f5f;
+    --stop-bg: #331516;
+    --info: #5b9bd9;
+    --info-bg: #13263a;
+    --idle: #8b949d;
+    --idle-bg: #1d232a;
+    --series-1: #5b9bd9;
+    --series-2: #a5adb5;
+    --series-3: #4fb3b3;
+    --series-4: #c8a46a;
+    --series-5: #a08cd0;
+    --series-muted: #4f5861;
+    --chart-grid: #232a31;
+    --shadow-1: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur: 0ms;
+  }
+}
