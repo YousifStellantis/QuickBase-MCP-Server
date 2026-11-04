@@ -7,9 +7,12 @@ It answers both 2026-07-28 clients (stateless `server/discover`) and clients sti
 
 Replace `/ABS/PATH/QuickBase-MCP-Server` with the absolute path of this folder
 (Windows: `C:\\Tools\\QuickBase-MCP-Server`, with double backslashes in JSON).
-Build once with `npm ci` in the clone. If you installed it globally
-(`npm install -g github:YousifStellantis/QuickBase-MCP-Server`), every example below can use
-`"command": "quickbase-mcp"` with no `args` instead.
+Build once with `npm ci` in the clone. Two alternatives to the absolute path:
+
+- after `npm link` in the clone: `"command": "quickbase-mcp"` with no `args` (macOS/Linux; on
+  Windows the `.cmd` shim is not started by every client, so keep `node` + the full path);
+- without a clone: `"command": "npx", "args": ["-y", "github:YousifStellantis/QuickBase-MCP-Server"]`
+  (needs git access to the repository; the first start builds it).
 
 Keep tokens out of files you commit: use the client's secret/input mechanism, an
 environment variable, or a gitignored `.env` next to a `quickbase-mcp.config.json`.

@@ -32,16 +32,16 @@ npm ci
 QB_REALM=yourcompany.quickbase.com QB_USER_TOKEN=<token> QB_APP_ID=<app dbid> node build/index.js doctor
 ```
 
-`npm ci` installs and builds (`prepare`). Or install it as a command straight from GitHub
-(needs git access to the repository) and use `quickbase-mcp` instead of `node …/build/index.js`:
+`npm ci` installs and builds (`prepare`). To get a `quickbase-mcp` command on your PATH that
+runs this clone (and picks up `git pull && npm ci` updates), add:
 
 ```bash
-npm install -g github:YousifStellantis/QuickBase-MCP-Server
+npm link
 ```
 
-```bash
-quickbase-mcp doctor
-```
+No clone at all: clients can start it with `npx -y github:YousifStellantis/QuickBase-MCP-Server`
+(needs git access to the repository from that machine; the first start builds it). Avoid
+`npm install -g github:…`: npm's global git installs skip the dev dependencies the build needs.
 
 `doctor` checks Node, config, proxy settings, workspace, skills, the token (XML
 `API_GetUserInfo`) and the default app. Then connect your agent (next section) and ask it to
@@ -78,8 +78,9 @@ Claude Desktop, Cursor, Windsurf, Gemini CLI, LM Studio (`mcpServers` JSON):
 }
 ```
 
-With the global install, use `"command": "quickbase-mcp"` and no `args`. VS Code, Codex CLI,
-JetBrains, Goose and Windows paths: see [docs/CLIENTS.md](docs/CLIENTS.md).
+After `npm link`, `"command": "quickbase-mcp"` with no `args` works too (on Windows prefer
+`node` + the full path). VS Code, Codex CLI, JetBrains, Goose and Windows: see
+[docs/CLIENTS.md](docs/CLIENTS.md).
 
 ## Configuration
 

@@ -168,3 +168,16 @@ describe('SlidingWindowLimiter', () => {
     expect(waits[0]).toBeGreaterThanOrEqual(10_000);
   });
 });
+
+describe('describeNetworkError', () => {
+  it('explains proxy refusals, timeouts and DNS failures', async () => {
+    const { describeNetworkError } = await import('../src/quickbase/json-client.js');
+    const proxy = Object.assign(new TypeError('fetch failed'), {
+      cause: Object.assign(new Error('Request was cancelled.'), { cause: Object.assign(new Error('Proxy response (403) !== 200 when HTTP Tunneling'), { name: 'AbortError', code: 'UND_ERR_ABORTED' }) }),
+    });
+    expect(describeNetworkError(proxy, 1000)).toContain('proxy refused the connection (HTTP 403)');
+    expect(describeNetworkError(Object.assign(new Error('x'), { cause: new Error('Proxy response (407) !== 200') }), 1000)).toContain('requires authentication');
+    expect(describeNetworkError(Object.assign(new Error('aborted'), { name: 'AbortError' }), 5000)).toContain('timed out after 5000 ms');
+    expect(describeNetworkError(Object.assign(new TypeError('fetch failed'), { cause: Object.assign(new Error('getaddrinfo ENOTFOUND x'), { code: 'ENOTFOUND' }) }), 1)).toContain('DNS lookup failed');
+  });
+});

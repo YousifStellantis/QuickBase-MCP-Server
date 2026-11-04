@@ -237,15 +237,29 @@ export function retryAfterMs(header: string | null): number | undefined {
   return undefined;
 }
 
-function describeNetworkError(err: unknown, timeoutMs: number): string {
-  const e = err as { name?: string; message?: string; cause?: { code?: string; message?: string } };
-  if (e?.name === 'AbortError') return `request timed out after ${timeoutMs} ms (corporate proxy or firewall? set HTTPS_PROXY / NODE_EXTRA_CA_CERTS)`;
-  const code = e?.cause?.code;
-  if (code === 'ENOTFOUND') return 'DNS lookup failed; check the network or proxy settings';
-  if (code === 'SELF_SIGNED_CERT_IN_CHAIN' || code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY') {
+export function describeNetworkError(err: unknown, timeoutMs: number): string {
+  // undici nests the real reason (proxy refusal, DNS, TLS) a few `cause` levels down.
+  const chain: Array<{ name?: string; code?: unknown; message?: string }> = [];
+  for (let c = err as { cause?: unknown } | undefined, i = 0; c && i < 6; c = c.cause as typeof c, i++) chain.push(c as never);
+  const messages = chain.map((e) => e.message ?? '');
+  const proxy = messages.join(' ').match(/Proxy response \((\d{3})\)/);
+  if (proxy) {
+    return proxy[1] === '407'
+      ? 'the HTTPS proxy requires authentication (HTTP 407); put credentials in HTTPS_PROXY (http://user:password@proxy:port)'
+      : `the HTTPS proxy refused the connection (HTTP ${proxy[1]}): this Quickbase host is not allowed through HTTPS_PROXY. Ask IT to allow it, or bypass the proxy with NO_PROXY`;
+  }
+  const top = chain[0];
+  if (top?.name === 'AbortError' || top?.name === 'TimeoutError') {
+    return `request timed out after ${timeoutMs} ms (corporate proxy or firewall? set HTTPS_PROXY / NODE_EXTRA_CA_CERTS)`;
+  }
+  const code = chain.map((e) => e.code).find((x): x is string => typeof x === 'string' && x.length > 0);
+  if (code === 'ENOTFOUND') return 'DNS lookup failed; check the network or proxy settings (HTTPS_PROXY)';
+  if (code === 'SELF_SIGNED_CERT_IN_CHAIN' || code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY' || code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE') {
     return 'TLS certificate not trusted (corporate TLS inspection?). Point NODE_EXTRA_CA_CERTS at your corporate root CA bundle.';
   }
-  return e?.cause?.message ?? e?.message ?? String(err);
+  const deepest = [...messages].reverse().find(Boolean);
+  if (deepest && deepest !== messages[0]) return `${messages[0] || 'fetch failed'}: ${deepest}${code ? ` (${code})` : ''}`;
+  return messages[0] || String(err);
 }
 
 async function drain(res: Response): Promise<void> {

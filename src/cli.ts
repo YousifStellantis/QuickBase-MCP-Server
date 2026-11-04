@@ -119,7 +119,10 @@ async function doctor(): Promise<number> {
   }
   ok(config.configPath ? `config file ${config.configPath}` : 'configuration from environment variables');
   for (const w of config.warnings) warn(w);
-  if (hasProxyEnv()) ok(`proxy variables set (HTTPS_PROXY/HTTP_PROXY); NO_PROXY=${process.env.NO_PROXY ?? process.env.no_proxy ?? '(unset)'}`);
+  if (hasProxyEnv()) {
+    const noProxy = process.env.NO_PROXY ?? process.env.no_proxy ?? '(unset)';
+    ok(`proxy variables set (HTTPS_PROXY/HTTP_PROXY); NO_PROXY=${noProxy.length > 80 ? `${noProxy.slice(0, 80)}…` : noProxy}`);
+  }
   if (process.env.NODE_EXTRA_CA_CERTS) ok(`NODE_EXTRA_CA_CERTS=${process.env.NODE_EXTRA_CA_CERTS}`);
   out(`  mode: ${config.allowWrites ? (config.allowDestructive ? 'read-write + destructive' : 'read-write') : 'read-only'}; toolsets: ${[...config.toolsets].join(', ')}`);
 

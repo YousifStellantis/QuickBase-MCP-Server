@@ -16,7 +16,7 @@ import type { Logger } from '../logger.js';
 import { redact, silentLogger } from '../logger.js';
 import { QuickbaseXmlError } from './errors.js';
 import type { FetchLike } from './http.js';
-import { backoffMs, retryAfterMs } from './json-client.js';
+import { backoffMs, describeNetworkError, retryAfterMs } from './json-client.js';
 import type { RateLimiter } from './rate-limiter.js';
 import { decodeXmlEntities, escapeCdata, escapeXmlText, extractAll, extractAttr, extractTag, stripCdata, textContent } from './xml.js';
 
@@ -105,9 +105,7 @@ export class QuickbaseXmlClient {
           await this.sleep(backoffMs(attempt));
           continue;
         }
-        const e = err as { name?: string; message?: string };
-        const why = e?.name === 'AbortError' ? `timed out after ${this.opts.timeoutMs} ms (proxy or firewall?)` : e?.message;
-        throw new Error(this.scrub(`${action}: network error reaching ${url} -- ${why}`));
+        throw new Error(this.scrub(`${action}: network error reaching ${url} -- ${describeNetworkError(err, this.opts.timeoutMs)}`));
       }
       clearTimeout(timer);
 
