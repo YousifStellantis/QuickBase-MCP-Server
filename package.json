@@ -4,6 +4,22 @@
   "private": true,
   "description": "QuickBase MCP Server: give any local AI agent safe, schema-aware access to Quickbase apps, tables, field IDs, code pages, forms (QBL), pipelines (YAML) and records, plus built-in skills for modern automotive work.",
   "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YousifStellantis/QuickBase-MCP-Server.git"
+  },
+  "homepage": "https://github.com/YousifStellantis/QuickBase-MCP-Server#readme",
+  "bugs": {
+    "url": "https://github.com/YousifStellantis/QuickBase-MCP-Server/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "quickbase",
+    "mcp-server",
+    "agent-skills",
+    "automotive"
+  ],
   "type": "module",
   "engines": {
     "node": ">=20.18.1"
@@ -19,6 +35,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json && node scripts/postbuild.mjs",
+    "prepare": "npm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "start": "node build/index.js",
     "test": "npm run build && vitest run",

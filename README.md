@@ -23,11 +23,24 @@ connection, stderr-only logging. It also serves clients still on the 2025 handsh
 
 ## Quick start
 
+Requires Node.js 20.18 or newer (22.12+ to run the test suite).
+
 ```bash
-cd quickbase-mcp-server
-npm install
-npm run build
+git clone https://github.com/YousifStellantis/QuickBase-MCP-Server.git
+cd QuickBase-MCP-Server
+npm ci
 QB_REALM=yourcompany.quickbase.com QB_USER_TOKEN=<token> QB_APP_ID=<app dbid> node build/index.js doctor
+```
+
+`npm ci` installs and builds (`prepare`). Or install it as a command straight from GitHub
+(needs git access to the repository) and use `quickbase-mcp` instead of `node …/build/index.js`:
+
+```bash
+npm install -g github:YousifStellantis/QuickBase-MCP-Server
+```
+
+```bash
+quickbase-mcp doctor
 ```
 
 `doctor` checks Node, config, proxy settings, workspace, skills, the token (XML
@@ -43,7 +56,7 @@ them. The server never needs (and code pages must never contain) a token in page
 Claude Code:
 
 ```bash
-claude mcp add quickbase --scope user -e QB_REALM=yourcompany.quickbase.com -e QB_USER_TOKEN="$QB_USER_TOKEN" -e QB_APP_ID=bxxxxxxxx -- node /ABS/PATH/quickbase-mcp-server/build/index.js
+claude mcp add quickbase --scope user -e QB_REALM=yourcompany.quickbase.com -e QB_USER_TOKEN="$QB_USER_TOKEN" -e QB_APP_ID=bxxxxxxxx -- node /ABS/PATH/QuickBase-MCP-Server/build/index.js
 ```
 
 Claude Desktop, Cursor, Windsurf, Gemini CLI, LM Studio (`mcpServers` JSON):
@@ -53,7 +66,7 @@ Claude Desktop, Cursor, Windsurf, Gemini CLI, LM Studio (`mcpServers` JSON):
   "mcpServers": {
     "quickbase": {
       "command": "node",
-      "args": ["/ABS/PATH/quickbase-mcp-server/build/index.js"],
+      "args": ["/ABS/PATH/QuickBase-MCP-Server/build/index.js"],
       "env": {
         "QB_REALM": "yourcompany.quickbase.com",
         "QB_USER_TOKEN": "…",
@@ -65,7 +78,8 @@ Claude Desktop, Cursor, Windsurf, Gemini CLI, LM Studio (`mcpServers` JSON):
 }
 ```
 
-VS Code, Codex CLI, JetBrains, Goose and Windows paths: see [docs/CLIENTS.md](docs/CLIENTS.md).
+With the global install, use `"command": "quickbase-mcp"` and no `args`. VS Code, Codex CLI,
+JetBrains, Goose and Windows paths: see [docs/CLIENTS.md](docs/CLIENTS.md).
 
 ## Configuration
 
@@ -211,22 +225,18 @@ npm test             # build + unit tests + end-to-end tests (fake Quickbase, bo
 npm run typecheck
 ```
 
+CI (`.github/workflows/ci.yml`) runs the tests on Ubuntu (Node 22, 24) and Windows (Node 22),
+then the MCP Inspector in both protocol eras with SEP-2640 skill verification.
+
 Layout: `src/quickbase` (JSON/XML clients, schema), `src/codepages`, `src/pipelines`,
 `src/solutions`, `src/tools`, `skills/`, `docs/`, `test/`.
 
-## Moving this folder into its own repository
+## Repository
 
-This server was built inside the RADARCHARTS repository. To publish it as its own
-**QuickBase-MCP-Server** repository with history, create an empty repository on GitHub
-named `QuickBase-MCP-Server`, then from a RADARCHARTS clone:
-
-```bash
-git subtree split --prefix=quickbase-mcp-server -b quickbase-mcp-server-split
-```
-
-```bash
-git push https://github.com/<owner>/QuickBase-MCP-Server.git quickbase-mcp-server-split:main
-```
+This is the canonical home of the server: https://github.com/YousifStellantis/QuickBase-MCP-Server.
+It started in the `quickbase-mcp-server/` folder of the RADARCHARTS repository; the history
+was carried over with `git subtree split`. The code pages it manages (KPI, radar charts) stay
+in RADARCHARTS: point `QB_WORKSPACE` at that checkout.
 
 ## Troubleshooting
 

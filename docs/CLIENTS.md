@@ -5,9 +5,11 @@ talks JSON-RPC over stdin/stdout. Every MCP-capable desktop or terminal agent ca
 It answers both 2026-07-28 clients (stateless `server/discover`) and clients still on the
 2025 `initialize` handshake.
 
-Replace `/ABS/PATH/quickbase-mcp-server` with the absolute path of this folder
-(Windows: `C:\\Tools\\quickbase-mcp-server`, with double backslashes in JSON).
-Build once with `npm install && npm run build`.
+Replace `/ABS/PATH/QuickBase-MCP-Server` with the absolute path of this folder
+(Windows: `C:\\Tools\\QuickBase-MCP-Server`, with double backslashes in JSON).
+Build once with `npm ci` in the clone. If you installed it globally
+(`npm install -g github:YousifStellantis/QuickBase-MCP-Server`), every example below can use
+`"command": "quickbase-mcp"` with no `args` instead.
 
 Keep tokens out of files you commit: use the client's secret/input mechanism, an
 environment variable, or a gitignored `.env` next to a `quickbase-mcp.config.json`.
@@ -19,7 +21,7 @@ claude mcp add quickbase --scope user \
   -e QB_REALM=yourcompany.quickbase.com \
   -e QB_USER_TOKEN="$QB_USER_TOKEN" \
   -e QB_APP_ID=bxxxxxxxx \
-  -- node /ABS/PATH/quickbase-mcp-server/build/index.js
+  -- node /ABS/PATH/QuickBase-MCP-Server/build/index.js
 ```
 
 Project-scoped alternative (`.mcp.json` in the repo; `${VAR}` is expanded from your shell):
@@ -29,7 +31,7 @@ Project-scoped alternative (`.mcp.json` in the repo; `${VAR}` is expanded from y
   "mcpServers": {
     "quickbase": {
       "command": "node",
-      "args": ["/ABS/PATH/quickbase-mcp-server/build/index.js"],
+      "args": ["/ABS/PATH/QuickBase-MCP-Server/build/index.js"],
       "env": {
         "QB_REALM": "yourcompany.quickbase.com",
         "QB_USER_TOKEN": "${QB_USER_TOKEN}",
@@ -42,7 +44,7 @@ Project-scoped alternative (`.mcp.json` in the repo; `${VAR}` is expanded from y
 ```
 
 Skills as native Claude Code skills (until Claude Code implements the MCP Skills
-extension): `node /ABS/PATH/quickbase-mcp-server/build/index.js install-skills --dir .claude/skills`.
+extension): `node /ABS/PATH/QuickBase-MCP-Server/build/index.js install-skills --dir .claude/skills`.
 Prompts appear as `/mcp__quickbase__build-code-page` etc.
 
 ## Claude Desktop
@@ -55,7 +57,7 @@ Prompts appear as `/mcp__quickbase__build-code-page` etc.
   "mcpServers": {
     "quickbase": {
       "command": "node",
-      "args": ["/ABS/PATH/quickbase-mcp-server/build/index.js"],
+      "args": ["/ABS/PATH/QuickBase-MCP-Server/build/index.js"],
       "env": {
         "QB_REALM": "yourcompany.quickbase.com",
         "QB_USER_TOKEN": "your-service-account-token",
@@ -84,7 +86,7 @@ with a working directory you do not control.
     "quickbase": {
       "type": "stdio",
       "command": "node",
-      "args": ["${workspaceFolder}/quickbase-mcp-server/build/index.js"],
+      "args": ["/ABS/PATH/QuickBase-MCP-Server/build/index.js"],
       "env": {
         "QB_REALM": "yourcompany.quickbase.com",
         "QB_USER_TOKEN": "${input:qb-token}",
@@ -105,7 +107,7 @@ with a working directory you do not control.
   "mcpServers": {
     "quickbase": {
       "command": "node",
-      "args": ["/ABS/PATH/quickbase-mcp-server/build/index.js"],
+      "args": ["/ABS/PATH/QuickBase-MCP-Server/build/index.js"],
       "env": { "QB_REALM": "yourcompany.quickbase.com", "QB_USER_TOKEN": "…", "QB_APP_ID": "bxxxxxxxx" }
     }
   }
@@ -122,7 +124,7 @@ If the client limits the total number of tools, trim them with
 ```toml
 [mcp_servers.quickbase]
 command = "node"
-args = ["/ABS/PATH/quickbase-mcp-server/build/index.js"]
+args = ["/ABS/PATH/QuickBase-MCP-Server/build/index.js"]
 env = { QB_REALM = "yourcompany.quickbase.com", QB_USER_TOKEN = "…", QB_APP_ID = "bxxxxxxxx" }
 ```
 
@@ -135,7 +137,7 @@ env = { QB_REALM = "yourcompany.quickbase.com", QB_USER_TOKEN = "…", QB_APP_ID
   "mcpServers": {
     "quickbase": {
       "command": "node",
-      "args": ["/ABS/PATH/quickbase-mcp-server/build/index.js"],
+      "args": ["/ABS/PATH/QuickBase-MCP-Server/build/index.js"],
       "env": { "QB_REALM": "yourcompany.quickbase.com", "QB_USER_TOKEN": "$QB_USER_TOKEN", "QB_APP_ID": "bxxxxxxxx" },
       "timeout": 60000
     }
@@ -151,7 +153,7 @@ Most clients accept the same `mcpServers` block as Claude Desktop:
 - LM Studio (fully local models): Program > Install > Edit `mcp.json`.
 - JetBrains AI Assistant: Settings > Tools > AI Assistant > Model Context Protocol > Add (paste the JSON).
 - Goose: `goose configure` > Add Extension > Command-line Extension, command
-  `node /ABS/PATH/quickbase-mcp-server/build/index.js`, then add the environment variables.
+  `node /ABS/PATH/QuickBase-MCP-Server/build/index.js`, then add the environment variables.
 
 Smaller local models call tools less reliably; keep `QB_ALLOW_WRITES` off with them and
 trim toolsets so the tool list stays short.

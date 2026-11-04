@@ -10,7 +10,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/client';
 import { SkillsClient } from '@modelcontextprotocol/client/ext/skills';
-import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
+import { getDefaultEnvironment, StdioClientTransport } from '@modelcontextprotocol/client/stdio';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { APP_ID, DEFECTS, REALM, startFakeQuickbase, TOKEN } from './helpers/fake-quickbase.js';
 
@@ -21,7 +21,9 @@ let workspace: string;
 
 function serverEnv(extra: Record<string, string> = {}): Record<string, string> {
   return {
-    PATH: process.env.PATH ?? '',
+    // The SDK's safe default set (PATH, and on Windows SystemRoot, TEMP, USERPROFILE ... which sockets need),
+    // without proxy variables, so the server talks to the local fake directly.
+    ...getDefaultEnvironment(),
     HOME: workspace,
     QB_REALM: REALM,
     QB_USER_TOKEN: TOKEN,

@@ -5,7 +5,7 @@ Snapshot: November 2026. Two readings of "skills" matter here, and the server co
 1. **Agent skills**: playbooks the AI loads so its Quickbase work (apps, code pages,
    pipelines, reports) uses automotive methods and looks like professional plant software.
 2. **Workforce skills**: the competencies Stellantis plants and engineering teams need,
-   which is exactly what the SIS competency radar app in this repository tracks.
+   which is exactly what the SIS competency radar app in the RADARCHARTS repository tracks.
 
 ## Where Stellantis is heading (public sources)
 
