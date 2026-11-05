@@ -41,12 +41,12 @@ describe('analyzeCodePage', () => {
 
   it('finds table IDs, field constants and query fields', () => {
     expect(a.title).toBe('Competency radar');
-    expect(a.dbids.map((d) => d.id).sort()).toEqual(['bv3iizxwv', 'bv3ijqck2']);
+    expect(a.dbids.map((d) => d.id).sort()).toEqual(['bqh6r3m9w', 'bqh6r4tz7']);
     expect(a.fidConstants.map((c) => `${c.name}=${c.fid}`)).toEqual(['FID_FIRST_NAME=16', 'FID_LAST_NAME=17', 'FID_TID=99', 'FID_CURRENT_LEVEL=18']);
     expect(a.queryFieldIds).toEqual([18, 404]);
     expect(a.selectFieldIds).toEqual([16, 17, 18]);
     expect(a.usesTempToken).toBe(true);
-    expect(a.realmHosts).toEqual(['fca.quickbase.com']);
+    expect(a.realmHosts).toEqual(['acme.quickbase.com']);
   });
 
   it('flags unpinned CDNs and unescaped innerHTML but not pinned ones', () => {
@@ -64,12 +64,12 @@ describe('analyzeCodePage', () => {
 
   it('cross-checks IDs against the live schema', async () => {
     const tables: Record<string, QbField[]> = {
-      bv3ijqck2: [f(16, 'First Name'), f(17, 'Surname'), f(18, 'Current Level', 'numeric')],
+      bqh6r4tz7: [f(16, 'First Name'), f(17, 'Surname'), f(18, 'Current Level', 'numeric')],
     };
     const check = await checkAgainstSchema(a, async (id) => (tables[id] ? { fields: tables[id] } : null));
     const byName = Object.fromEntries(check.fields.map((x) => [x.name, x.status]));
     expect(byName).toEqual({ FID_FIRST_NAME: 'ok', FID_LAST_NAME: 'label-mismatch', FID_TID: 'not-found', FID_CURRENT_LEVEL: 'ok' });
-    expect(check.tables.find((t) => t.id === 'bv3iizxwv')?.status).toBe('not-found');
+    expect(check.tables.find((t) => t.id === 'bqh6r3m9w')?.status).toBe('not-found');
     expect(check.queryFields).toEqual([{ fid: 18, status: 'ok' }, { fid: 404, status: 'not-found' }]);
   });
 });
@@ -192,9 +192,9 @@ describe('schema helpers', () => {
   });
 
   it('generates constants in every style and reports collisions', () => {
-    const table = { id: 'bv3ijqck2', name: 'Comp Details' };
-    const js = generateFieldConstants([{ table, alias: 'compDetails', fields }], 'js-const', { realm: 'fca.quickbase.com', appId: 'bv3iiibf2' });
-    expect(js.code).toContain('const DBID_COMP_DETAILS = "bv3ijqck2";');
+    const table = { id: 'bqh6r4tz7', name: 'Comp Details' };
+    const js = generateFieldConstants([{ table, alias: 'compDetails', fields }], 'js-const', { realm: 'acme.quickbase.com', appId: 'bqh6r2kxa' });
+    expect(js.code).toContain('const DBID_COMP_DETAILS = "bqh6r4tz7";');
     expect(js.code).toContain('const FID_REQUIRED_LEVEL = 7;');
     expect(js.code).toContain('const FID_FIRST_NAME_9 = 9;');
     expect(js.collisions).toHaveLength(1);
@@ -211,13 +211,13 @@ describe('schema helpers', () => {
     expect(rows).toEqual([{ 'First Name': 'Ana', Owner: 'Ana B <a@x.com>' }]);
     expect(rowsToCsv([{ a: 'x,y', b: 1 }])).toBe('a,b\n"x,y",1\n');
     const md = formatSchemaMarkdown({
-      realm: 'fca.quickbase.com',
+      realm: 'acme.quickbase.com',
       generatedAt: '2026-11-04T00:00:00Z',
-      app: { id: 'bv3iiibf2', name: 'SIS', variables: [] },
-      tables: [{ id: 'bv3ijqck2', name: 'Comp Details', alias: '_DBID_COMP_DETAILS', keyFieldId: 3, fields: [f(1, 'Date Created'), f(16, 'First Name', 'text', { required: true })], relationships: [{ id: 1, parentTableId: 'bv3iizxwv', childTableId: 'bv3ijqck2', foreignKeyField: { id: 32, label: 'Related Position', type: 'numeric' } }] }],
+      app: { id: 'bqh6r2kxa', name: 'Plant Skills', variables: [] },
+      tables: [{ id: 'bqh6r4tz7', name: 'Comp Details', alias: '_DBID_COMP_DETAILS', keyFieldId: 3, fields: [f(1, 'Date Created'), f(16, 'First Name', 'text', { required: true })], relationships: [{ id: 1, parentTableId: 'bqh6r3m9w', childTableId: 'bqh6r4tz7', foreignKeyField: { id: 32, label: 'Related Position', type: 'numeric' } }] }],
       missingTableIds: [],
     });
-    expect(md).toContain('## Comp Details — `bv3ijqck2`');
+    expect(md).toContain('## Comp Details — `bqh6r4tz7`');
     expect(md).toContain('| 16 | First Name | text | required |');
     expect(md).not.toContain('| 1 | Date Created');
     expect(md).toContain('via reference FID 32');

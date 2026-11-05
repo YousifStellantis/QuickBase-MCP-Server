@@ -68,8 +68,8 @@ export const dbid = (what: string) =>
   z
     .string()
     .trim()
-    .regex(/^[a-z0-9]{6,12}$/i, `${what} looks like "bv3ijqck2" (letters and digits)`)
-    .describe(`${what} (Quickbase dbid, e.g. "bv3ijqck2")`);
+    .regex(/^[a-z0-9]{6,12}$/i, `${what} looks like "bqh6r4tz7" (letters and digits)`)
+    .describe(`${what} (Quickbase dbid, e.g. "bqh6r4tz7")`);
 
 /** Optional `env` parameter, only advertised when more than one environment is configured. */
 export function envParam(ctx: AppContext) {

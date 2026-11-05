@@ -112,7 +112,7 @@ function parseIntSafe(value: string | undefined, fallback: number, min: number, 
   return Math.min(max, Math.max(min, n));
 }
 
-/** "fca" -> "fca.quickbase.com"; strips scheme and trailing slashes. */
+/** "acme" -> "acme.quickbase.com"; strips scheme and trailing slashes. */
 export function normalizeRealm(realm: string): string {
   let r = realm.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
   if (r && !r.includes('.')) r = `${r}.quickbase.com`;

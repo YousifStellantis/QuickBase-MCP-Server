@@ -139,14 +139,14 @@ describe('QuickbaseXmlClient', () => {
     const f = fakeFetch((_u, init) => {
       const action = (init.headers as Record<string, string>)['QUICKBASE-ACTION'];
       if (action === 'API_GrantedDBs') {
-        return new Response('<qdbapi><errcode>0</errcode><databases><dbinfo><dbname>SIS &amp; Skills</dbname><dbid>bv3iiibf2</dbid></dbinfo><dbinfo><dbname>KPI</dbname><dbid>bv83uc4eu</dbid><ancestorappid>bv3iiibf2</ancestorappid></dbinfo></databases></qdbapi>');
+        return new Response('<qdbapi><errcode>0</errcode><databases><dbinfo><dbname>Plant &amp; Skills</dbname><dbid>bqh6r2kxa</dbid></dbinfo><dbinfo><dbname>KPI</dbname><dbid>bqh7c5d8n</dbid><ancestorappid>bqh6r2kxa</ancestorappid></dbinfo></databases></qdbapi>');
       }
       return new Response('<qdbapi><errcode>0</errcode><user id="5883.abcd"><firstName>Jordan</firstName><lastName>Lee</lastName><email>j@example.com</email></user></qdbapi>');
     });
     const client = make(f.fn);
     expect(await client.grantedDbs()).toEqual([
-      { dbid: 'bv3iiibf2', name: 'SIS & Skills', ancestorAppId: undefined, oldestAncestorAppId: undefined },
-      { dbid: 'bv83uc4eu', name: 'KPI', ancestorAppId: 'bv3iiibf2', oldestAncestorAppId: undefined },
+      { dbid: 'bqh6r2kxa', name: 'Plant & Skills', ancestorAppId: undefined, oldestAncestorAppId: undefined },
+      { dbid: 'bqh7c5d8n', name: 'KPI', ancestorAppId: 'bqh6r2kxa', oldestAncestorAppId: undefined },
     ]);
     const user = await client.getUserInfo();
     expect(user).toMatchObject({ id: '5883.abcd', firstName: 'Jordan', email: 'j@example.com' });

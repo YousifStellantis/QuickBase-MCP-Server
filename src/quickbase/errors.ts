@@ -27,7 +27,7 @@ export class QuickbaseApiError extends Error {
       case 403:
         return 'Access denied. The token user may lack role permissions, or the token is not assigned to this app (Quickbase: My preferences > Manage user tokens > Assign token to apps).';
       case 404:
-        return 'Not found. Check the app/table/field/report ID. Table and app IDs (dbids) look like "bv3ijqck2"; field IDs are integers.';
+        return 'Not found. Check the app/table/field/report ID. Table and app IDs (dbids) look like "bqh6r4tz7"; field IDs are integers.';
       case 429:
         return 'Rate limited by Quickbase (about 100 requests per 10 seconds per user token). The server already retried; slow down or narrow the request.';
       default:

@@ -12,8 +12,8 @@ const tmp = () => mkdtempSync(join(tmpdir(), 'qbmcp-'));
 
 describe('loadConfig', () => {
   it('builds a single default environment from env vars (read-only by default)', () => {
-    const c = loadConfig({ QB_REALM: 'fca', QB_USER_TOKEN: 'tok_123456789', QB_APP_ID: 'bv3iiibf2' }, tmp());
-    expect(c.environments.default).toMatchObject({ realm: 'fca.quickbase.com', appId: 'bv3iiibf2', userToken: 'tok_123456789', protected: false });
+    const c = loadConfig({ QB_REALM: 'acme', QB_USER_TOKEN: 'tok_123456789', QB_APP_ID: 'bqh6r2kxa' }, tmp());
+    expect(c.environments.default).toMatchObject({ realm: 'acme.quickbase.com', appId: 'bqh6r2kxa', userToken: 'tok_123456789', protected: false });
     expect(c.allowWrites).toBe(false);
     expect(c.allowDestructive).toBe(false);
     expect([...c.toolsets]).not.toContain('admin');
@@ -31,8 +31,8 @@ describe('loadConfig', () => {
       JSON.stringify({
         defaultEnv: 'dev',
         environments: {
-          dev: { realm: 'fca.quickbase.com', appId: 'bdevapp01', tokenEnvVar: 'QB_USER_TOKEN_DEV' },
-          prod: { realm: 'fca.quickbase.com', appId: 'bprdapp01', tokenEnvVar: 'QB_USER_TOKEN_PROD', protected: true },
+          dev: { realm: 'acme.quickbase.com', appId: 'bdevapp01', tokenEnvVar: 'QB_USER_TOKEN_DEV' },
+          prod: { realm: 'acme.quickbase.com', appId: 'bprdapp01', tokenEnvVar: 'QB_USER_TOKEN_PROD', protected: true },
         },
         targets: { kpi: { src: 'KPI.html', pageName: 'KPI.html', pageIds: { dev: '12', prod: '' } } },
       }),
@@ -54,22 +54,22 @@ describe('loadConfig', () => {
   it('parses toolsets, allowlist and table aliases', () => {
     const dir = tmp();
     mkdirSync(join(dir, 'config'));
-    writeFileSync(join(dir, 'config', 'tables.json'), JSON.stringify({ compDetails: 'bv3ijqck2' }));
-    const c = loadConfig({ QB_REALM: 'fca', QB_USER_TOKEN: 't_12345678', QB_APP_ID: 'bv3iiibf2', QB_TOOLSETS: 'apps,admin,bogus', QB_ALLOWED_APPS: 'bother0001', QB_WORKSPACE: dir }, tmp());
+    writeFileSync(join(dir, 'config', 'tables.json'), JSON.stringify({ compDetails: 'bqh6r4tz7' }));
+    const c = loadConfig({ QB_REALM: 'acme', QB_USER_TOKEN: 't_12345678', QB_APP_ID: 'bqh6r2kxa', QB_TOOLSETS: 'apps,admin,bogus', QB_ALLOWED_APPS: 'bother0001', QB_WORKSPACE: dir }, tmp());
     expect([...c.toolsets].sort()).toEqual(['admin', 'apps']);
     expect(c.warnings.some((w) => w.includes('bogus'))).toBe(true);
-    expect(c.allowedApps?.sort()).toEqual(['bother0001', 'bv3iiibf2']);
-    expect(c.tableAliases['*']).toEqual({ compDetails: 'bv3ijqck2' });
+    expect(c.allowedApps?.sort()).toEqual(['bother0001', 'bqh6r2kxa']);
+    expect(c.tableAliases['*']).toEqual({ compDetails: 'bqh6r4tz7' });
   });
 
   it('normalizes realms', () => {
-    expect(normalizeRealm('FCA')).toBe('fca.quickbase.com');
-    expect(normalizeRealm('https://fca.quickbase.com/db/main')).toBe('fca.quickbase.com');
+    expect(normalizeRealm('ACME')).toBe('acme.quickbase.com');
+    expect(normalizeRealm('https://acme.quickbase.com/db/main')).toBe('acme.quickbase.com');
   });
 });
 
 describe('guardrails', () => {
-  const ctxWith = (env: Record<string, string>) => new AppContext(loadConfig({ QB_REALM: 'fca', QB_USER_TOKEN: 'tok_12345678', QB_APP_ID: 'bv3iiibf2', ...env }, tmp()), silentLogger, null);
+  const ctxWith = (env: Record<string, string>) => new AppContext(loadConfig({ QB_REALM: 'acme', QB_USER_TOKEN: 'tok_12345678', QB_APP_ID: 'bqh6r2kxa', ...env }, tmp()), silentLogger, null);
 
   it('refuses writes when read-only', () => {
     const ctx = ctxWith({});
@@ -94,13 +94,13 @@ describe('guardrails', () => {
   });
 
   it('enforces the app allowlist', () => {
-    const ctx = ctxWith({ QB_ALLOWED_APPS: 'bv3iiibf2' });
+    const ctx = ctxWith({ QB_ALLOWED_APPS: 'bqh6r2kxa' });
     expect(() => ctx.appId(ctx.env(), 'bnotallow1')).toThrow(/QB_ALLOWED_APPS/);
-    expect(ctx.appId(ctx.env())).toBe('bv3iiibf2');
+    expect(ctx.appId(ctx.env())).toBe('bqh6r2kxa');
   });
 
   it('explains a missing token', () => {
-    const ctx = new AppContext(loadConfig({ QB_REALM: 'fca' }, tmp()), silentLogger, null);
+    const ctx = new AppContext(loadConfig({ QB_REALM: 'acme' }, tmp()), silentLogger, null);
     expect(() => ctx.env()).toThrow(/no user token/);
   });
 });

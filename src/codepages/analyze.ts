@@ -56,11 +56,11 @@ export function analyzeCodePage(source: string): StaticAnalysis {
     dbidMap.set(id, e);
   };
 
-  // Named constants: const DBID_COMP_DETAILS = "bv3ijqck2"
+  // Named constants: const DBID_COMP_DETAILS = "bqh6r4tz7"
   for (const m of source.matchAll(/(?:const|let|var)\s+([A-Za-z0-9_$]*(?:DBID|TABLE|Table|Dbid|APP|App)[A-Za-z0-9_$]*)\s*=\s*["'`]([a-z0-9]{8,10})["'`]/g)) {
     addDbid(m[2], m[1], m.index ?? 0);
   }
-  // URLs: /db/bv3iiibf2
+  // URLs: /db/bqh6r2kxa
   for (const m of source.matchAll(/\/db\/([a-z0-9]{8,10})\b/g)) if (m[1] !== 'main') addDbid(m[1], null, m.index ?? 0);
   // API bodies: from: "b...", to: "b...", tableId=b..., appId: "b..."
   for (const m of source.matchAll(/\b(?:from|to|tableId|appId|dbid)["']?\s*[:=]\s*["'`]?(b[a-z0-9]{7,9})\b/g)) addDbid(m[1], null, m.index ?? 0);
