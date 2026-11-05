@@ -247,3 +247,24 @@ in RADARCHARTS: point `QB_WORKSPACE` at that checkout.
 - **Tools missing**: writes are off, or a toolset is disabled (`test_connection` reports both).
 - **Claude Desktop shows nothing**: fully quit and restart; check `mcp-server-quickbase.log`.
 - **Windows**: use `node` as the command and an absolute `C:\\...\\build\\index.js` path.
+
+### Corporate network on Windows (git / npm / server cannot reach the internet)
+
+Symptoms: `git clone` says `Could not resolve host: github.com`, `npm ci` times out, or
+`doctor` reports a network or proxy error, while the browser works. The browser uses the
+company proxy (often through an auto-config script); command-line tools need it set by hand.
+
+1. Find the proxy (Command Prompt):
+   `reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyServer`
+   and `reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v AutoConfigURL`.
+   A `ProxyServer` value is the `host:port` to use. With only an `AutoConfigURL`, open that URL in
+   the browser and read the `PROXY host:port` it returns, or ask IT for "the HTTP proxy for
+   command-line tools such as git and npm".
+2. git: `git config --global http.proxy http://HOST:PORT` and, for TLS-inspecting proxies,
+   `git config --global http.sslBackend schannel` (uses the Windows certificate store).
+3. npm: `npm config set proxy http://HOST:PORT` and `npm config set https-proxy http://HOST:PORT`.
+   On `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`, export the corporate root certificate to a `.pem`
+   file and run `npm config set cafile C:\path\to\corporate-root.pem`.
+4. This server: add `"HTTPS_PROXY": "http://HOST:PORT"` (and `"NODE_EXTRA_CA_CERTS":
+   "C:\\path\\to\\corporate-root.pem"` if needed) to the `env` block of the MCP client config,
+   then run `doctor` with the same variables.
