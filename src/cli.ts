@@ -3,6 +3,7 @@
  * terminal, so they may print to stdout.
  *
  *   quickbase-mcp                 start the stdio MCP server (default)
+ *   quickbase-mcp http [--port n] serve MCP at http://localhost:8080/mcp (index.ts)
  *   quickbase-mcp doctor          check config, network/proxy, tokens and apps
  *   quickbase-mcp print-config    show the resolved config (tokens redacted)
  *   quickbase-mcp skills          list bundled skills
@@ -22,6 +23,9 @@ const HELP = `QuickBase MCP Server ${VERSION}
 
 Usage:
   quickbase-mcp                      Start the MCP server on stdio (what MCP clients run)
+  quickbase-mcp http [--port <n>]    Serve MCP over HTTP at http://localhost:8080/mcp,
+                                     for clients that connect to a local URL.
+                                     Only this computer can connect.
   quickbase-mcp doctor               Check configuration, network, tokens and apps
   quickbase-mcp print-config         Print the resolved configuration (tokens redacted)
   quickbase-mcp skills               List the bundled skills
@@ -36,9 +40,10 @@ Environment (most common):
   QB_ALLOW_WRITES     true to enable write tools (default: read-only)
   QB_CONFIG           path to a multi-environment config file
   QB_WORKSPACE        folder for code pages, pipelines, QBL and snapshots
+  QB_HTTP_PORT        port for "quickbase-mcp http" (default 8080)
 See README.md for the full list.`;
 
-function flag(args: string[], name: string): string | undefined {
+export function flag(args: string[], name: string): string | undefined {
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1] : undefined;
 }
@@ -65,7 +70,7 @@ export async function runCli(argv: string[]): Promise<number | null> {
   }
   if (cmd === 'install-skills') return installSkills(rest);
   if (cmd === 'doctor') return doctor();
-  if (cmd === 'serve' || cmd === 'stdio') return null;
+  if (cmd === 'serve' || cmd === 'stdio' || cmd === 'http') return null;
   process.stderr.write(`Unknown command "${cmd}".\n\n${HELP}\n`);
   return 2;
 }

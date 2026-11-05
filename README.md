@@ -82,6 +82,21 @@ After `npm link`, `"command": "quickbase-mcp"` with no `args` works too (on Wind
 `node` + the full path). VS Code, Codex CLI, JetBrains, Goose and Windows: see
 [docs/CLIENTS.md](docs/CLIENTS.md).
 
+### Clients that connect to a local URL (HTTP mode)
+
+Some setups don't let the AI client start an MCP server itself, but allow one at a fixed local
+address. For those, run the server on its own and it serves `http://localhost:8080/mcp`
+(Streamable HTTP):
+
+```bash
+QB_REALM=yourcompany.quickbase.com QB_USER_TOKEN=<token> QB_APP_ID=<app dbid> QB_WORKSPACE=/ABS/PATH/your-code-pages-repo node build/index.js http
+```
+
+Leave it running and connect the client to `http://localhost:8080/mcp`; `--port <n>` or
+`QB_HTTP_PORT` picks another port. Because the client no longer starts the server, the
+variables come from the terminal it runs in, not from the client's config. Windows and VS Code
+steps: [docs/CLIENTS.md](docs/CLIENTS.md#local-url-http-mode).
+
 ## Configuration
 
 | Variable | Default | Purpose |
@@ -102,6 +117,7 @@ After `npm link`, `"command": "quickbase-mcp"` with no `args` works too (on Wind
 | `QB_TIMEOUT_MS` | `30000` | per request |
 | `QB_MAX_OUTPUT_CHARS` | `60000` | tool output budget before truncation |
 | `QB_LOG_LEVEL` | `info` | stderr log level |
+| `QB_HTTP_PORT` | `8080` | port for `quickbase-mcp http` (HTTP mode) |
 | `HTTPS_PROXY`, `NO_PROXY`, `NODE_EXTRA_CA_CERTS` | — | corporate proxy and TLS inspection |
 
 ### Multiple environments (DEV / TEST / PROD)
@@ -129,6 +145,10 @@ be used side by side on one repo. Environments marked `"protected": true` need
   Generated caches (schema snapshots, large pulled pages) go to `.quickbase/` inside it; add
   `.quickbase/` and `.qb-deploy-state.json` to that repo's `.gitignore`.
 - Tokens are redacted from errors and logs; stdout carries only JSON-RPC.
+- **HTTP mode** listens on this computer only (127.0.0.1 and ::1) and refuses requests whose
+  `Host` or `Origin` header is not local, so a web page can't reach it through DNS rebinding.
+  Unlike stdio, where only the client that started the server can talk to it, any program
+  running on the computer can call it while it runs: stop it with Ctrl+C when you're done.
 - Client-side rate limiting, `Retry-After` handling, retries only for idempotent calls.
 - Tool annotations (`readOnlyHint`, `destructiveHint` …) let clients ask before risky calls.
 
@@ -247,6 +267,8 @@ in RADARCHARTS: point `QB_WORKSPACE` at that checkout.
 - **Tools missing**: writes are off, or a toolset is disabled (`test_connection` reports both).
 - **Claude Desktop shows nothing**: fully quit and restart; check `mcp-server-quickbase.log`.
 - **Windows**: use `node` as the command and an absolute `C:\\...\\build\\index.js` path.
+- **HTTP mode: "Port 8080 is already in use"**: another program, or a second copy of the
+  server, holds the port. On Windows `netstat -ano | findstr :8080` shows its process ID.
 
 ### Corporate network on Windows (git / npm / server cannot reach the internet)
 

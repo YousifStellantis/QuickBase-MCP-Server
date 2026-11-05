@@ -1,6 +1,6 @@
 {
   "name": "quickbase-mcp-server",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "QuickBase MCP Server: give any local AI agent safe, schema-aware access to Quickbase apps, tables, field IDs, code pages, forms (QBL), pipelines (YAML) and records, plus built-in skills for modern automotive work.",
   "license": "UNLICENSED",

@@ -9,20 +9,27 @@
  * still open with the 2025-era initialize handshake.
  *
  * stdout carries JSON-RPC only; every log line goes to stderr.
+ *
+ * `quickbase-mcp http` serves the same server over Streamable HTTP at
+ * http://localhost:8080/mcp instead, for clients that connect to a local URL
+ * (see http-server.ts).
  */
 
 import { serveStdio } from '@modelcontextprotocol/server/stdio';
-import { runCli } from './cli.js';
+import { flag, runCli } from './cli.js';
 import { emptyConfig, loadConfig, type ServerConfig } from './config.js';
 import { AppContext } from './context.js';
+import { HttpStartError, parsePort, serveHttp } from './http-server.js';
 import { createLogger } from './logger.js';
 import { ConfigError } from './quickbase/errors.js';
 import { createServer } from './server.js';
 import { SkillLibrary } from './skills.js';
 import { VERSION } from './version.js';
 
-const exitCode = await runCli(process.argv.slice(2));
+const args = process.argv.slice(2);
+const exitCode = await runCli(args);
 if (exitCode !== null) process.exit(exitCode);
+const httpMode = args[0] === 'http';
 
 let config: ServerConfig;
 try {
@@ -45,12 +52,28 @@ try {
 }
 
 const ctx = new AppContext(config, logger, skills);
-
-serveStdio(() => createServer(ctx), {
-  onerror: (error) => logger.error('MCP transport error', error),
-});
-
 const mode = config.allowWrites ? (config.allowDestructive ? 'read-write+destructive' : 'read-write') : 'read-only';
-logger.info(
-  `QuickBase MCP Server ${VERSION} on stdio | envs: ${ctx.envNames.join(', ') || 'none'} | mode: ${mode} | workspace: ${config.workspaceRoot} | skills: ${skills?.list().length ?? 0}`,
-);
+const summary = `envs: ${ctx.envNames.join(', ') || 'none'} | mode: ${mode} | workspace: ${config.workspaceRoot} | skills: ${skills?.list().length ?? 0}`;
+
+if (httpMode) {
+  let running: Awaited<ReturnType<typeof serveHttp>>;
+  try {
+    running = await serveHttp(() => createServer(ctx), { port: parsePort(flag(args, '--port') ?? process.env.QB_HTTP_PORT), logger });
+  } catch (err) {
+    if (!(err instanceof HttpStartError)) throw err;
+    process.stderr.write(`${err.message}\n`);
+    process.exit(1);
+  }
+  logger.info(`QuickBase MCP Server ${VERSION} on ${running.url} | ${summary}`);
+  process.stdout.write(
+    `QuickBase MCP Server is running at ${running.url}\nOnly this computer can connect. Keep this window open while you use it; press Ctrl+C to stop.\n`,
+  );
+  const stop = () => void running.close().finally(() => process.exit(0));
+  process.once('SIGINT', stop);
+  process.once('SIGTERM', stop);
+} else {
+  serveStdio(() => createServer(ctx), {
+    onerror: (error) => logger.error('MCP transport error', error),
+  });
+  logger.info(`QuickBase MCP Server ${VERSION} on stdio | ${summary}`);
+}
