@@ -180,4 +180,18 @@ describe('describeNetworkError', () => {
     expect(describeNetworkError(Object.assign(new Error('aborted'), { name: 'AbortError' }), 5000)).toContain('timed out after 5000 ms');
     expect(describeNetworkError(Object.assign(new TypeError('fetch failed'), { cause: Object.assign(new Error('getaddrinfo ENOTFOUND x'), { code: 'ENOTFOUND' }) }), 1)).toContain('DNS lookup failed');
   });
+
+  it('names the host that could not be found, and whether it was the proxy', async () => {
+    const { describeNetworkError } = await import('../src/quickbase/json-client.js');
+    const dns = (host: string) =>
+      Object.assign(new TypeError('fetch failed'), { cause: Object.assign(new Error(`getaddrinfo ENOTFOUND ${host}`), { code: 'ENOTFOUND', hostname: host }) });
+    expect(describeNetworkError(dns('acme.quickbase.com'), 1, {})).toContain('DNS lookup failed for acme.quickbase.com, and no proxy is set');
+    const viaProxy = describeNetworkError(dns('proxy.example.com'), 1, { HTTPS_PROXY: 'http://user:secret@proxy.example.com:8080' });
+    expect(viaProxy).toContain('DNS lookup failed for the proxy proxy.example.com');
+    expect(viaProxy).toContain('VPN');
+    expect(viaProxy).not.toContain('secret');
+    const bypassed = describeNetworkError(dns('acme.quickbase.com'), 1, { https_proxy: 'http://user:secret@proxy.example.com:8080' });
+    expect(bypassed).toContain('although HTTPS_PROXY is set (proxy.example.com:8080)');
+    expect(bypassed).not.toContain('secret');
+  });
 });

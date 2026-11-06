@@ -237,9 +237,9 @@ export function retryAfterMs(header: string | null): number | undefined {
   return undefined;
 }
 
-export function describeNetworkError(err: unknown, timeoutMs: number): string {
+export function describeNetworkError(err: unknown, timeoutMs: number, env: Record<string, string | undefined> = process.env): string {
   // undici nests the real reason (proxy refusal, DNS, TLS) a few `cause` levels down.
-  const chain: Array<{ name?: string; code?: unknown; message?: string }> = [];
+  const chain: Array<{ name?: string; code?: unknown; message?: string; hostname?: unknown }> = [];
   for (let c = err as { cause?: unknown } | undefined, i = 0; c && i < 6; c = c.cause as typeof c, i++) chain.push(c as never);
   const messages = chain.map((e) => e.message ?? '');
   const proxy = messages.join(' ').match(/Proxy response \((\d{3})\)/);
@@ -253,13 +253,42 @@ export function describeNetworkError(err: unknown, timeoutMs: number): string {
     return `request timed out after ${timeoutMs} ms (corporate proxy or firewall? set HTTPS_PROXY / NODE_EXTRA_CA_CERTS)`;
   }
   const code = chain.map((e) => e.code).find((x): x is string => typeof x === 'string' && x.length > 0);
-  if (code === 'ENOTFOUND') return 'DNS lookup failed; check the network or proxy settings (HTTPS_PROXY)';
+  if (code === 'ENOTFOUND' || code === 'EAI_AGAIN') {
+    const host =
+      chain.map((e) => e.hostname).find((h): h is string => typeof h === 'string' && h.length > 0) ??
+      messages.join(' ').match(/(?:ENOTFOUND|EAI_AGAIN) (\S+)/)?.[1];
+    return describeDnsFailure(host, env);
+  }
   if (code === 'SELF_SIGNED_CERT_IN_CHAIN' || code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY' || code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE') {
     return 'TLS certificate not trusted (corporate TLS inspection?). Point NODE_EXTRA_CA_CERTS at your corporate root CA bundle.';
   }
   const deepest = [...messages].reverse().find(Boolean);
   if (deepest && deepest !== messages[0]) return `${messages[0] || 'fetch failed'}: ${deepest}${code ? ` (${code})` : ''}`;
   return messages[0] || String(err);
+}
+
+/**
+ * Say which name could not be resolved, and whether a proxy was in play. With
+ * a proxy, undici only resolves the proxy's own name, so a failure there means
+ * the proxy is unreachable (off the company network or VPN), not Quickbase.
+ */
+function describeDnsFailure(host: string | undefined, env: Record<string, string | undefined>): string {
+  const target = host ?? 'the Quickbase host';
+  const raw = env.HTTPS_PROXY || env.https_proxy || env.HTTP_PROXY || env.http_proxy;
+  if (!raw) {
+    return `DNS lookup failed for ${target}, and no proxy is set for this server (HTTPS_PROXY is not in its environment). On a corporate network, add HTTPS_PROXY to the server's environment in your MCP client`;
+  }
+  let proxy = raw;
+  try {
+    const u = new URL(raw);
+    proxy = u.port ? `${u.hostname}:${u.port}` : u.hostname; // never echo credentials
+  } catch {
+    proxy = '(unparseable HTTPS_PROXY value)';
+  }
+  if (host && proxy.split(':')[0] === host.toLowerCase()) {
+    return `DNS lookup failed for the proxy ${host} (from HTTPS_PROXY): this computer can't find it. Check that you're on the company network or VPN, and that the proxy address is right`;
+  }
+  return `DNS lookup failed for ${target} although HTTPS_PROXY is set (${proxy}); check NO_PROXY, which may send this host around the proxy`;
 }
 
 async function drain(res: Response): Promise<void> {
