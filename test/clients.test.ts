@@ -3,7 +3,7 @@ import { QuickbaseApiError, QuickbaseXmlError } from '../src/quickbase/errors.js
 import type { FetchLike } from '../src/quickbase/http.js';
 import { QuickbaseJsonClient, retryAfterMs } from '../src/quickbase/json-client.js';
 import { SlidingWindowLimiter, unlimited } from '../src/quickbase/rate-limiter.js';
-import { escapeCdata, stripCdata, unsplitCdata } from '../src/quickbase/xml.js';
+import { escapeCdata, lineMarkerStats, stripCdata, stripLineMarkers, unsplitCdata } from '../src/quickbase/xml.js';
 import { QuickbaseXmlClient } from '../src/quickbase/xml-client.js';
 
 const TOKEN = 'b5grq7_jxdx_0_bqxxxxxxxxxxxxxxxxxxxxxx';
@@ -101,6 +101,21 @@ describe('XML helpers', () => {
     expect(stripCdata(wrapped)).toBe(body);
     expect(unsplitCdata(escapeCdata(body))).toBe(body);
   });
+
+  it('removes the <BR/> the page API adds at the end of every line', () => {
+    expect(stripLineMarkers('<html><BR/>\r\n<script>let a = 1;<BR/>\r\n<BR/>\r\n</script><BR/>\r\n</html><BR/>')).toBe('<html>\r\n<script>let a = 1;\r\n\r\n</script>\r\n</html>');
+    // Blank lines may come back without a marker.
+    expect(stripLineMarkers('a<BR/>\n\nb<BR/>\n')).toBe('a\n\nb\n');
+    // A line that really ends with <BR/> comes back with two and keeps one.
+    expect(stripLineMarkers('<p>Hi<BR/><BR/>\n</p><BR/>\n')).toBe('<p>Hi<BR/>\n</p>\n');
+  });
+
+  it('leaves pages alone unless every line with text has the marker', () => {
+    const real = '<p>one<BR/>\ntwo</p>\n<p>three<BR/>\n';
+    expect(stripLineMarkers(real)).toBe(real);
+    expect(stripLineMarkers('<p>Hi</p><BR/>')).toBe('<p>Hi</p><BR/>');
+    expect(lineMarkerStats('a<BR/>\r\n\n  \nb\nc<BR/>')).toEqual({ marked: 1, lines: 2 });
+  });
 });
 
 describe('QuickbaseXmlClient', () => {
@@ -120,6 +135,11 @@ describe('QuickbaseXmlClient', () => {
     expect(await make(bare.fn).getPage('bqapp', 3)).toContain('<body>Hi</body>');
     const wrapped = fakeFetch(() => new Response(`<?xml version="1.0"?><qdbapi><errcode>0</errcode><pagebody><![CDATA[${escapeCdata('<p>a]]>b</p>')}]]></pagebody></qdbapi>`));
     expect(await make(wrapped.fn).getPage('bqapp', 3)).toBe('<p>a]]>b</p>');
+  });
+
+  it('returns pages without the <BR/> the API adds at the end of every line', async () => {
+    const marked = fakeFetch(() => new Response('<!DOCTYPE html><BR/>\r\n<html><BR/>\r\n<script>const n = 1;<BR/>\r\n</script><BR/>\r\n</html><BR/>\r\n'));
+    expect(await make(marked.fn).getPage('bqapp', 11)).toBe('<!DOCTYPE html>\r\n<html>\r\n<script>const n = 1;\r\n</script>\r\n</html>\r\n');
   });
 
   it('sends the action header, user token and CDATA-escaped body on putPage', async () => {

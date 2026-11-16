@@ -225,6 +225,10 @@ Add your own (for example official brand colors, plant standards) with `QB_SKILL
 | Pipelines | ⚠️ YAML export | ⚠️ YAML import | UI (no REST API); some channels via QBL |
 | Report/form layout editing, page deletion, pipeline listing | ❌ | ❌ | UI only |
 
+Quickbase's API returns code pages with `<BR/>` added at the end of every line. The server
+removes them when it reads a page, and refuses to deploy a copy that still has them (it would
+put `<BR/>` into the page's scripts).
+
 Full matrix, limits and sources: [docs/CAPABILITIES.md](docs/CAPABILITIES.md). Automotive /
 Stellantis research behind the skills: [docs/AUTOMOTIVE-RESEARCH.md](docs/AUTOMOTIVE-RESEARCH.md).
 

@@ -81,7 +81,8 @@ export async function startFakeQuickbase(): Promise<{ url: string; state: FakeSt
         const id = Number(body.match(/<pageID>([^<]+)<\/pageID>/)?.[1]);
         const page = state.pages.get(id);
         if (!page) return send(res, 200, '<qdbapi><errcode>2</errcode><errtext>Invalid input</errtext><errdetail>No such page</errdetail></qdbapi>', 'text/xml');
-        return send(res, 200, page, 'text/html');
+        // Like the real API, return the page with "<BR/>" at the end of every line.
+        return send(res, 200, page.replace(/\r?\n/g, (eol) => `<BR/>${eol}`), 'text/html');
       }
       if (action === 'API_AddReplaceDBPage') {
         const id = body.match(/<pageid>([^<]+)<\/pageid>/)?.[1];

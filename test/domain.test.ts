@@ -62,6 +62,19 @@ describe('analyzeCodePage', () => {
     expect(bad.findings.filter((x) => x.severity === 'error').map((x) => x.code).sort()).toEqual(['embedded-user-token', 'user-token-auth']);
   });
 
+  it('blocks copies that still have the API\'s <BR/> line markers', () => {
+    // Saved with the markers, then one line edited by hand.
+    const rows = Array.from({ length: 19 }, (_, i) => `<div>row ${i}</div><BR/>`);
+    const page = ['<!-- edited -->', ...rows].join('\n') + '\n';
+    const finding = analyzeCodePage(page).findings.find((x) => x.code === 'api-line-markers');
+    expect(finding?.severity).toBe('error');
+    expect(finding?.message).toContain('19 of 20 lines');
+    expect(finding?.line).toBe(2);
+    const stamped = '<!-- qb-deploy | page-3 | default | abc1234 | 2026-11-16T00:00:00Z -->\n<html><BR/>\n<body>x</body><BR/>\n</html><BR/>\n';
+    expect(analyzeCodePage(stamped).findings.map((x) => x.code)).toContain('api-line-markers');
+    expect(analyzeCodePage('<p>one<BR/>\ntwo<BR/>\nthree</p>\n').findings.map((x) => x.code)).not.toContain('api-line-markers');
+  });
+
   it('cross-checks IDs against the live schema', async () => {
     const tables: Record<string, QbField[]> = {
       bqh6r4tz7: [f(16, 'First Name'), f(17, 'Surname'), f(18, 'Current Level', 'numeric')],

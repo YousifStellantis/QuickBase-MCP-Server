@@ -181,6 +181,18 @@ describe('writes (QB_ALLOW_WRITES=true)', () => {
       const state = JSON.parse(readFileSync(join(workspace, '.qb-deploy-state.json'), 'utf8'));
       expect(state['default:page-12'].pageId).toBe('12');
 
+      // The fake, like Quickbase, returns pages with <BR/> at the end of every line.
+      // Reads must remove them, or every redeploy would look like a browser edit.
+      expect(textOf(await client.callTool({ name: 'deploy_code_page', arguments: { localPath: 'board.html', pageId: 12 } }))).toContain('already up to date');
+      const read = textOf(await client.callTool({ name: 'get_code_page', arguments: { pageId: 12, inline: 'always' } }));
+      expect(read).toContain('v2 status=7</body></html>\n');
+      expect(read).not.toContain('<BR/>');
+
+      // A copy saved with those markers is never deployed.
+      const marked = await client.callTool({ name: 'deploy_code_page', arguments: { content: '<!DOCTYPE html><BR/>\n<html><BR/>\n<body>v2<BR/>\n</body><BR/>\n</html><BR/>\n', pageId: 12 } });
+      expect(marked.isError).toBe(true);
+      expect(textOf(marked)).toContain('lines end with <BR/>');
+
       // Someone edits the page in the browser: the next deploy must refuse.
       fake.state.pages.set(12, live.replace('v2', 'v2-edited-in-browser'));
       writeFileSync(join(workspace, 'board.html'), '<!DOCTYPE html>\n<html><head><title>Line board</title></head><body>v3</body></html>\n');

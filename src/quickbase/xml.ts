@@ -57,6 +57,37 @@ export function stripCdata(s: string): string | null {
   return m ? unsplitCdata(m[1]) : null;
 }
 
+/**
+ * API_GetDBPage returns code pages with "<BR/>" added at the end of every
+ * line; the stored page has none. These helpers recognise that pattern.
+ */
+const LINE_MARKER = '<BR/>';
+
+/** Lines that end with the marker, and lines that have any text (the last line, with no line break after it, is not counted). */
+export function lineMarkerStats(body: string): { marked: number; lines: number } {
+  const lines = body.split('\n');
+  lines.pop();
+  let marked = 0;
+  let withText = 0;
+  for (const raw of lines) {
+    const line = raw.endsWith('\r') ? raw.slice(0, -1) : raw;
+    if (line.endsWith(LINE_MARKER)) marked++;
+    if (line.trim()) withText++;
+  }
+  return { marked, lines: withText };
+}
+
+/**
+ * Remove the API's line markers, only when every line with text carries one
+ * (blank lines may or may not). One "<BR/>" is removed per line, so a line
+ * that already ended with <BR/> before the API added its own keeps it.
+ */
+export function stripLineMarkers(body: string): string {
+  const { marked, lines } = lineMarkerStats(body);
+  if (marked === 0 || marked < lines) return body;
+  return body.replace(/<BR\/>(?=\r?\n)/g, '').replace(/<BR\/>$/, '');
+}
+
 /** Text content that may be CDATA or entity-encoded. */
 export function textContent(s: string | null): string | null {
   if (s === null) return null;

@@ -18,7 +18,7 @@ import { QuickbaseXmlError } from './errors.js';
 import type { FetchLike } from './http.js';
 import { backoffMs, describeNetworkError, retryAfterMs } from './json-client.js';
 import type { RateLimiter } from './rate-limiter.js';
-import { decodeXmlEntities, escapeCdata, escapeXmlText, extractAll, extractAttr, extractTag, stripCdata, textContent } from './xml.js';
+import { decodeXmlEntities, escapeCdata, escapeXmlText, extractAll, extractAttr, extractTag, stripCdata, stripLineMarkers, textContent } from './xml.js';
 
 /** pagetype 1 = HTML / XSL page; 3 = Exact Form (Word template). */
 export const PAGE_TYPE_HTML = 1;
@@ -52,6 +52,25 @@ export interface UserInfo {
   login: string | null;
   email: string | null;
   screenName: string | null;
+}
+
+/**
+ * The page in an API_GetDBPage response. Responses are inconsistent: sometimes
+ * a <qdbapi> envelope with <pagebody>, sometimes the bare page. Both are handled.
+ */
+function pageBody(raw: string): string {
+  const pagebody = extractTag(raw, 'pagebody');
+  if (pagebody !== null) return stripCdata(pagebody) ?? decodeXmlEntities(pagebody);
+  if (/^\s*<\?xml/.test(raw) && /<qdbapi>/i.test(raw)) {
+    const inner = raw.replace(/[\s\S]*?<qdbapi>/i, '').replace(/<\/qdbapi>[\s\S]*$/i, '');
+    const cleaned = inner
+      .replace(/<action>[\s\S]*?<\/action>/gi, '')
+      .replace(/<errcode>[\s\S]*?<\/errcode>/gi, '')
+      .replace(/<errtext>[\s\S]*?<\/errtext>/gi, '')
+      .trim();
+    if (cleaned) return stripCdata(cleaned) ?? decodeXmlEntities(cleaned);
+  }
+  return raw;
 }
 
 const READ_ACTIONS = new Set(['API_GetDBPage', 'API_GrantedDBs', 'API_GetUserInfo', 'API_DoQueryCount', 'API_GetSchema', 'API_GetDBInfo']);
@@ -169,24 +188,12 @@ export class QuickbaseXmlClient {
   }
 
   /**
-   * Current contents of a code page, by page ID or page name.
-   * Responses are inconsistent: sometimes a <qdbapi> envelope with <pagebody>,
-   * sometimes the bare page. Both are handled.
+   * Current contents of a code page, by page ID or page name, as it was saved:
+   * without the "<BR/>" the API adds at the end of every line.
    */
   async getPage(appId: string, pageIdOrName: string | number): Promise<string> {
     const raw = await this.call(appId, 'API_GetDBPage', `<pageID>${escapeXmlText(String(pageIdOrName))}</pageID>`);
-    const pagebody = extractTag(raw, 'pagebody');
-    if (pagebody !== null) return stripCdata(pagebody) ?? decodeXmlEntities(pagebody);
-    if (/^\s*<\?xml/.test(raw) && /<qdbapi>/i.test(raw)) {
-      const inner = raw.replace(/[\s\S]*?<qdbapi>/i, '').replace(/<\/qdbapi>[\s\S]*$/i, '');
-      const cleaned = inner
-        .replace(/<action>[\s\S]*?<\/action>/gi, '')
-        .replace(/<errcode>[\s\S]*?<\/errcode>/gi, '')
-        .replace(/<errtext>[\s\S]*?<\/errtext>/gi, '')
-        .trim();
-      if (cleaned) return stripCdata(cleaned) ?? decodeXmlEntities(cleaned);
-    }
-    return raw;
+    return stripLineMarkers(pageBody(raw));
   }
 
   /**

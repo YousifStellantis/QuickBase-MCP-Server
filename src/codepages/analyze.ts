@@ -9,7 +9,8 @@
 
 import type { QbField } from '../quickbase/types.js';
 import { normalizeLabel } from '../quickbase/schema.js';
-import { findPlaceholders, readStamp } from './build.js';
+import { lineMarkerStats } from '../quickbase/xml.js';
+import { findPlaceholders, readStamp, stripStamp } from './build.js';
 
 export type Severity = 'error' | 'warning' | 'info';
 
@@ -122,6 +123,19 @@ export function analyzeCodePage(source: string): StaticAnalysis {
   }
   const usertokenParam = source.search(/[?&]usertoken=/i);
   if (usertokenParam >= 0) findings.push({ severity: 'error', code: 'usertoken-param', message: 'A usertoken= URL parameter is present. Tokens in URLs leak into logs and browser history.', line: lineOf(source, usertokenParam) });
+  // A copy that still has the "<BR/>" Quickbase's API adds at the end of every line
+  // (saved by an older version of this server, or by a script calling the API).
+  // Most lines rather than all, because the copy may have been edited since;
+  // the build stamp a deploy adds is not counted.
+  const markers = lineMarkerStats(stripStamp(source));
+  if (markers.marked >= 3 && markers.marked >= 0.9 * markers.lines) {
+    findings.push({
+      severity: 'error',
+      code: 'api-line-markers',
+      message: `${markers.marked} of ${markers.lines} lines end with <BR/>, the marker Quickbase's API adds to every line of a page it returns. Deploying this copy would put <BR/> into every line, including scripts. Pull the page again with get_code_page (it removes them), or delete the <BR/> at the end of each line.`,
+      line: lineOf(source, source.search(/<BR\/>\r?\n/)),
+    });
+  }
   const apptoken = source.search(/apptoken/i);
   if (apptoken >= 0) findings.push({ severity: 'info', code: 'app-token', message: 'The page references an app token. App tokens are visible to page users; make sure that is intended.', line: lineOf(source, apptoken) });
 
